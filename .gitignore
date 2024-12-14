@@ -1,3 +1,4 @@
+#Ignored files for uploads
 .vscode/
 build/
 .DS_Store
