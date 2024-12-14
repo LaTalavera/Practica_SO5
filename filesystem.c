@@ -7,7 +7,8 @@
 
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
-void ls(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); //for the info command.
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
