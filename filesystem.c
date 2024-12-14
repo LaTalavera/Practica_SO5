@@ -43,6 +43,10 @@ int main()
    // MORE CODE...
 
    file = fopen("partition.bin", "r+b");
+   if (file == NULL){
+      perror("Error opening file partition.bin");
+      return 1;
+   }
    fread(&fileData, BLOCK_SIZE, MAX_PARTITION_BLOCKS, file);
 
    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
