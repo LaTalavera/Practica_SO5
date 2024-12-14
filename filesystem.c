@@ -20,6 +20,7 @@ void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
 
+
 int main()
 {
    char command[COMMAND_LENGTH];
@@ -86,4 +87,14 @@ int main()
          return 0;
       }
    }
+}
+
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock) {
+    printf("Información del Superbloque:\n");
+    printf("Inodos totales: %u\n", superBlock->total_inodes);
+    printf("Bloques totales: %u\n", superBlock->total_blocks);
+    printf("Bloques libres: %u\n", superBlock->free_blocks);
+    printf("Inodos libres: %u\n", superBlock->free_inodes);
+    printf("Primer bloque de datos: %u\n", superBlock->first_data_block);
+    printf("Tamaño de bloque: %u bytes\n", superBlock->block_size);
 }
