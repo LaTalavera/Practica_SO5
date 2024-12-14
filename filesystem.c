@@ -7,7 +7,7 @@
 
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
-void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void ls(EXT_SIMPLE_SUPERBLOCK *superBlock);
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
@@ -45,9 +45,9 @@ int main()
    fread(&fileData, BLOCK_SIZE, MAX_PARTITION_BLOCKS, file);
 
    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
-   memcpy(&directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], BLOCK_SIZE);
    memcpy(&byteMaps, (EXT_BYTE_MAPS *)&fileData[1], BLOCK_SIZE);
    memcpy(&inodeBlock, (EXT_INODE_BLOCK *)&fileData[2], BLOCK_SIZE);
+   memcpy(&directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], BLOCK_SIZE);
    memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE);
 
    // Command processing loop
