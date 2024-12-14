@@ -7,7 +7,8 @@
 
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
-void ls(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); //for the info command.
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
@@ -18,6 +19,7 @@ void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *ino
 void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
+
 
 int main()
 {
@@ -42,6 +44,10 @@ int main()
    // MORE CODE...
 
    file = fopen("partition.bin", "r+b");
+   if (file == NULL){
+      perror("Error opening file partition.bin");
+      return 1;
+   }
    fread(&fileData, BLOCK_SIZE, MAX_PARTITION_BLOCKS, file);
 
    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
@@ -81,4 +87,14 @@ int main()
          return 0;
       }
    }
+}
+
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock) {
+    printf("Información del Superbloque:\n");
+    printf("Inodos totales: %u\n", superBlock->total_inodes);
+    printf("Bloques totales: %u\n", superBlock->total_blocks);
+    printf("Bloques libres: %u\n", superBlock->free_blocks);
+    printf("Inodos libres: %u\n", superBlock->free_inodes);
+    printf("Primer bloque de datos: %u\n", superBlock->first_data_block);
+    printf("Tamaño de bloque: %u bytes\n", superBlock->block_size);
 }
