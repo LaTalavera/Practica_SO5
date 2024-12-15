@@ -69,6 +69,12 @@ int main()
       {
          ListDirectory(&directory, &inodeBlock);
          continue;
+      } else if(strcmp(order, "info" == 0)){
+         PrintSuperBlock(&superBlock);
+         continue;
+      } else if(strcmp(order, "bytemaps" == 0)){
+         PrintByteMaps(&byteMaps);
+         continue;
       }
       // MORE CODE...
       // Write metadata in rename, remove, copy commands
@@ -98,3 +104,55 @@ void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock) {
     printf("Primer bloque de datos: %u\n", superBlock->first_data_block);
     printf("Tamaño de bloque: %u bytes\n", superBlock->block_size);
 }
+
+void PrintByteMaps(EXT_BYTE_MAPS *byteMaps) {
+   int i;
+
+   printf(">> bytemaps");
+
+      // Mostrar el contenido del bytemap de inodos
+   printf("\nInodos: ");
+   for (i = 0; i < MAX_INODES; i++) {
+      printf("%u ", byteMaps->inode_bytemap[i]);
+   }
+
+   // Mostrar el contenido del bytemap de bloques (primeros 25 elementos)
+   printf("Bloques [0-25]: ");
+   for (i = 0; i < 25; i++) {
+      printf("%u ", byteMaps->block_bytemap[i]);
+   }
+
+   printf(">>");
+}
+
+
+void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes) {
+    int i, j;
+    EXT_SIMPLE_INODE *inode;
+
+    for (i = 0; i < MAX_FILES; i++) {
+        // Ignorar entradas vacías y la entrada especial "."
+        if (directory[i].inode == 0xFFFF || strcmp(directory[i].file_name, ".") == 0) {
+            continue;
+        }
+
+        // Obtener el inodo correspondiente
+        inode = &inodes->inodes[directory[i].inode];
+
+        // Imprimir nombre del fichero, tamaño e inodo
+        printf("%-20s tamaño:%-6u inodo:%-2d bloques:", 
+               directory[i].file_name,        // Nombre del fichero
+               inode->file_size,           // Tamaño del fichero
+               directory[i].inode);       // Número de inodo
+
+        // Imprimir bloques ocupados
+        for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++) {
+            if (inode->block_numbers[j] != 0xFFFF) {  // Ignorar bloques no asignados
+                printf(" %u", inode->block_numbers[j]);
+            }
+        }
+
+        printf("\n");
+    }
+}
+
