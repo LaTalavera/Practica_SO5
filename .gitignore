@@ -3,3 +3,6 @@
 build/
 .DS_Store
 filesystem.exe
+filesystem.dSYM/Contents/Resources/Relocations/aarch64/filesystem.yml
+filesystem.dSYM/Contents/Info.plist
+filesystem.dSYM/Contents/Resources/DWARF/filesystem

@@ -20,9 +20,11 @@ void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
 
-void clearInputBuffer() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF);
+void clearInputBuffer()
+{
+   int c;
+   while ((c = getchar()) != '\n' && c != EOF)
+      ;
 }
 
 int main()
@@ -51,7 +53,7 @@ int main()
    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
    memcpy(&byteMaps, (EXT_BYTE_MAPS *)&fileData[1], BLOCK_SIZE);
    memcpy(&inodeBlock, (EXT_INODE_BLOCK *)&fileData[2], BLOCK_SIZE);
-   memcpy(&directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], BLOCK_SIZE);
+   memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES); // TODO double check if this is correct or is ok as it comes in the example file
    memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE);
 
    // Command processing loop
@@ -81,8 +83,8 @@ int main()
       }
       if (strcmp(order, "exit") == 0)
       {
-         //TODO uncomment it out once Savedata is implemented
-         // SaveData(data, file);
+         // TODO uncomment it out once Savedata is implemented
+         //  SaveData(data, file);
          fclose(file);
          return 0;
       }
