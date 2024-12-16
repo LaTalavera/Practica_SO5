@@ -20,6 +20,11 @@ void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
 
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 int main()
 {
    char command[COMMAND_LENGTH];
@@ -33,8 +38,6 @@ int main()
    EXT_DIRECTORY_ENTRY directory[MAX_FILES];
    EXT_DATA data[MAX_DATA_BLOCKS];
    EXT_DATA fileData[MAX_PARTITION_BLOCKS];
-   int directoryEntry;
-   int saveDataFlag;
    FILE *file;
 
    file = fopen("particion.bin", "r+b");
@@ -57,8 +60,8 @@ int main()
       do
       {
          printf(">> ");
-         fflush(stdin);
          fgets(command, COMMAND_LENGTH, stdin);
+         clearInputBuffer(); // Clear the input buffer
       } while (CheckCommand(command, order, argument1, argument2) != 0);
 
       if (strcmp(order, "dir") == 0)
