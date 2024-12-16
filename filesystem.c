@@ -4,7 +4,7 @@
 #include "headers.h"
 
 #define COMMAND_LENGTH 100
-//TODO check relation between all these functions and the exercise requirementes, to make sure we need them all
+// TODO check relation between all these functions and the exercise requirementes, to make sure we need them all
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
 void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
@@ -65,7 +65,8 @@ int main()
          printf("\n>> ");
          fgets(command, COMMAND_LENGTH, stdin);
          char *newLine = strchr(command, '\n');
-         if(newLine){
+         if (newLine)
+         {
             *newLine = '\0';
          }
          // clearInputBuffer(); // Clear the input buffer
@@ -86,7 +87,19 @@ int main()
          PrintByteMaps(&byteMaps);
          continue;
       }
-      if (strcmp(order, "exit") == 0)
+      else if (strcmp(order, "rename") == 0)
+      {
+         if (strlen(argument1) == 0 || strlen(argument2) == 0)
+         {
+            printf("Usage: rename <old_name> <new_name>\n");
+         }
+         else
+         {
+            RenameFile(directory, &inodeBlock, argument1, argument2);
+         }
+         continue;
+      }
+      else if (strcmp(order, "exit") == 0)
       {
          // TODO uncomment it out once Savedata is implemented
          //  SaveData(data, file);
@@ -132,7 +145,6 @@ int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
    return 0;
 }
 
-
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
 {
    // Print superblock information
@@ -144,7 +156,6 @@ void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
    printf("First data block: %u\n", superBlock->first_data_block);
    printf("Block size: %u bytes\n", superBlock->block_size);
 }
-
 
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
 {
@@ -167,7 +178,6 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
    }
    printf("\n");
 }
-
 
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 {
@@ -202,4 +212,53 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 
       printf("\n");
    }
+}
+
+int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name)
+{
+    int i;
+
+    // Iterate through the directory to find the file
+    for (i = 0; i < MAX_FILES; i++)
+    {
+        if (directory[i].inode != 0xFFFF && strcmp(directory[i].file_name, name) == 0)
+        {
+            return i; // Return the index of the file
+        }
+    }
+
+    return -1; // File not found
+}
+
+
+int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName)
+{
+    // Verify that the file names are not null or empty
+    if (oldName == NULL || newName == NULL || strlen(newName) == 0)
+    {
+        printf("Invalid file names.\n");
+        return -1;
+    }
+
+    // Find the file with the old name
+    int fileIndex = FindFile(directory, inodes, oldName);
+    if (fileIndex == -1)
+    {
+        printf("File '%s' not found.\n", oldName);
+        return -1;
+    }
+
+    // Check if a file with the new name already exists
+    if (FindFile(directory, inodes, newName) != -1)
+    {
+        printf("A file with the name '%s' already exists.\n", newName);
+        return -1;
+    }
+
+    // Rename the file
+    strncpy(directory[fileIndex].file_name, newName, sizeof(directory[fileIndex].file_name) - 1);
+    directory[fileIndex].file_name[sizeof(directory[fileIndex].file_name) - 1] = '\0'; // Ensure null termination
+    printf("File renamed from '%s' to '%s'.\n", oldName, newName);
+
+    return 0;
 }
