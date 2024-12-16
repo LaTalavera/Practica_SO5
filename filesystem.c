@@ -94,31 +94,31 @@ int main()
 
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {
-   // Separar el comando en tokens
+   // Split the command into tokens
    char *token;
    char commandCopy[COMMAND_LENGTH];
    strncpy(commandCopy, commandStr, COMMAND_LENGTH);
    commandCopy[COMMAND_LENGTH - 1] = '\0';
 
-   // Quitar el salto de línea
+   // Remove the newline character
    char *newline = strchr(commandCopy, '\n');
    if (newline)
       *newline = '\0';
 
-   // Obtener el primer token (comando)
+   // Get the first token (command)
    token = strtok(commandCopy, " ");
    if (token == NULL)
       return -1;
    strcpy(command, token);
 
-   // Obtener el segundo token (primer argumento)
+   // Get the second token (first argument)
    token = strtok(NULL, " ");
    if (token)
       strcpy(arg1, token);
    else
       arg1[0] = '\0';
 
-   // Obtener el tercer token (segundo argumento)
+   // Get the third token (second argument)
    token = strtok(NULL, " ");
    if (token)
       strcpy(arg2, token);
@@ -128,33 +128,35 @@ int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
    return 0;
 }
 
+
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
 {
-   // Imprimir información del superbloque
-   printf("Informacion del Superbloque:\n");
-   printf("Inodos totales: %u\n", superBlock->total_inodes);
-   printf("Bloques totales: %u\n", superBlock->total_blocks);
-   printf("Bloques libres: %u\n", superBlock->free_blocks);
-   printf("Inodos libres: %u\n", superBlock->free_inodes);
-   printf("Primer bloque de datos: %u\n", superBlock->first_data_block);
-   printf("Tamanio de bloque: %u bytes\n", superBlock->block_size);
+   // Print superblock information
+   printf("\n\nSuperblock Information:\n");
+   printf("Total inodes: %u\n", superBlock->total_inodes);
+   printf("Total blocks: %u\n", superBlock->total_blocks);
+   printf("Free blocks: %u\n", superBlock->free_blocks);
+   printf("Free inodes: %u\n", superBlock->free_inodes);
+   printf("First data block: %u\n", superBlock->first_data_block);
+   printf("Block size: %u bytes\n", superBlock->block_size);
 }
+
 
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
 {
    int i;
 
-   printf("Informacion bytemaps:");
+   printf("\n\nByte maps information:");
 
-   // Mostrar el contenido del bytemap de inodos
-   printf("\nInodos: ");
+   // Display the contents of the inode bytemap
+   printf("\nInodes: ");
    for (i = 0; i < MAX_INODES; i++)
    {
       printf("%u ", byteMaps->inode_bytemap[i]);
    }
    printf("\n");
-   // Mostrar el contenido del bytemap de bloques (primeros 25 elementos)
-   printf("Bloques [0-25]: ");
+   // Display the contents of the block bytemap (first 25 elements)
+   printf("Blocks [0-25]: ");
    for (i = 0; i < 25; i++)
    {
       printf("%u ", byteMaps->block_bytemap[i]);
@@ -163,6 +165,7 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
    printf(">>");
 }
 
+
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 {
    int i, j;
@@ -170,25 +173,25 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 
    for (i = 0; i < MAX_FILES; i++)
    {
-      // Ignorar entradas vacías y la entrada especial "."
+      // Skip empty entries and the special entry "."
       if (directory[i].inode == 0xFFFF || strcmp(directory[i].file_name, ".") == 0)
       {
          continue;
       }
 
-      // Obtener el inodo correspondiente
+      // Get the corresponding inode
       inode = &inodes->inodes[directory[i].inode];
 
-      // Imprimir nombre del fichero, tamaño e inodo
-      printf("%-20s tamanio:%-6u inodo:%-2d bloques:",
-             directory[i].file_name, // Nombre del fichero
-             inode->file_size,       // Tamaño del fichero
-             directory[i].inode);    // Número de inodo
+      // Print file name, size, and inode
+      printf("\n\n%-20s size:%-6u inode:%-2d blocks:",
+             directory[i].file_name, // File name
+             inode->file_size,       // File size
+             directory[i].inode);    // Inode number
 
-      // Imprimir bloques ocupados
+      // Print occupied blocks
       for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
       {
-         if (inode->block_numbers[j] != 0xFFFF) // Ignorar bloques no asignados
+         if (inode->block_numbers[j] != 0xFFFF) // Skip unassigned blocks
          {
             printf(" %u", inode->block_numbers[j]);
          }
