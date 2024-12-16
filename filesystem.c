@@ -20,7 +20,6 @@ void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
 
-
 int main()
 {
    char command[COMMAND_LENGTH];
@@ -67,28 +66,28 @@ int main()
       } while (CheckCommand(command, order, argument1, argument2) != 0);
       if (strcmp(order, "dir") == 0)
       {
-         ListDirectory(&directory, &inodeBlock);
+         ListDirectory(directory, &inodeBlock);
          continue;
-      } else if(strcmp(order, "info" == 0)){
+      } else if(strcmp(order, "info") == 0){
          PrintSuperBlock(&superBlock);
          continue;
-      } else if(strcmp(order, "bytemaps" == 0)){
+      } else if(strcmp(order, "bytemaps") == 0){
          PrintByteMaps(&byteMaps);
          continue;
       }
       // MORE CODE...
       // Write metadata in rename, remove, copy commands
-      SaveInodesAndDirectory(&directory, &inodeBlock, file);
+      SaveInodesAndDirectory(directory, &inodeBlock, file);
       SaveByteMaps(&byteMaps, file);
       SaveSuperBlock(&superBlock, file);
       if (saveDataFlag)
-         SaveData(&data, file);
+         SaveData(data, file);
       saveDataFlag = 0;
       // If the command is exit, all metadata will have been written
       // missing data and close
       if (strcmp(order, "exit") == 0)
       {
-         SaveData(&data, file);
+         SaveData(data, file);
          fclose(file);
          return 0;
       }
@@ -124,7 +123,6 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps) {
 
    printf(">>");
 }
-
 
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes) {
     int i, j;
