@@ -22,7 +22,6 @@ void SaveData(EXT_DATA *data, FILE *file);
 
 int main()
 {
-   //TEST
    char command[COMMAND_LENGTH];
    char order[COMMAND_LENGTH];
    char argument1[COMMAND_LENGTH];
