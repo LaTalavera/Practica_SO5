@@ -27,8 +27,6 @@ int main()
    char argument1[COMMAND_LENGTH];
    char argument2[COMMAND_LENGTH];
 
-   int i, j;
-   unsigned long int m;
    EXT_SIMPLE_SUPERBLOCK superBlock;
    EXT_BYTE_MAPS byteMaps;
    EXT_INODE_BLOCK inodeBlock;
@@ -38,9 +36,6 @@ int main()
    int directoryEntry;
    int saveDataFlag;
    FILE *file;
-
-   // Read the entire file at once
-   // MORE CODE...
 
    file = fopen("particion.bin", "r+b");
    if (file == NULL)
@@ -64,9 +59,8 @@ int main()
          printf(">> ");
          fflush(stdin);
          fgets(command, COMMAND_LENGTH, stdin);
-      } while (1); // Change condition to always be true for testing purposes
-      //TODO Uncomment this out once the CheckCommand function is implemented
-      // while (CheckCommand(command, order, argument1, argument2) != 0);
+      } while (CheckCommand(command, order, argument1, argument2) != 0);
+
       if (strcmp(order, "dir") == 0)
       {
          ListDirectory(directory, &inodeBlock);
@@ -82,28 +76,50 @@ int main()
          PrintByteMaps(&byteMaps);
          continue;
       }
-      // MORE CODE...
-      // Write metadata in rename, remove, copy commands
-      SaveInodesAndDirectory(directory, &inodeBlock, file);
-      SaveByteMaps(&byteMaps, file);
-      SaveSuperBlock(&superBlock, file);
-      //TODO Uncomment this out once the SaveData function is implemented
-      // if (saveDataFlag)
-      //    SaveData(data, file);
-      // saveDataFlag = 0;
-      // If the command is exit, all metadata will have been written      
-      // missing data and close
       if (strcmp(order, "exit") == 0)
       {
-         SaveData(data, file);
+         // SaveData(data, file);
          fclose(file);
          return 0;
       }
    }
 }
 
+int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
+{
+   // Separar el comando en tokens
+   // Ejemplo simplificado
+   char *token;
+   char copia[COMMAND_LENGTH];
+   strncpy(copia, commandStr, COMMAND_LENGTH);
+   copia[COMMAND_LENGTH - 1] = '\0';
+
+   // Quitar el salto de línea
+   char *newline = strchr(copia, '\n');
+   if (newline)
+      *newline = '\0';
+
+   token = strtok(copia, " ");
+   if (token == NULL)
+      return -1;
+   strcpy(command, token);
+   token = strtok(NULL, " ");
+   if (token)
+      strcpy(arg1, token);
+   else
+      arg1[0] = '\0';
+   token = strtok(NULL, " ");
+   if (token)
+      strcpy(arg2, token);
+   else
+      arg2[0] = '\0';
+
+   return 0;
+}
+
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
 {
+   // Imprimir información del superbloque
    printf("Información del Superbloque:\n");
    printf("Inodos totales: %u\n", superBlock->total_inodes);
    printf("Bloques totales: %u\n", superBlock->total_blocks);
@@ -125,14 +141,14 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
    {
       printf("%u ", byteMaps->inode_bytemap[i]);
    }
-
+   printf("\n");
    // Mostrar el contenido del bytemap de bloques (primeros 25 elementos)
    printf("Bloques [0-25]: ");
    for (i = 0; i < 25; i++)
    {
       printf("%u ", byteMaps->block_bytemap[i]);
    }
-
+   printf("\n");
    printf(">>");
 }
 
@@ -161,8 +177,8 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
       // Imprimir bloques ocupados
       for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
       {
-         if (inode->block_numbers[j] != 0xFFFF)
-         { // Ignorar bloques no asignados
+         if (inode->block_numbers[j] != 0xFFFF) // Ignorar bloques no asignados
+         {
             printf(" %u", inode->block_numbers[j]);
          }
       }
