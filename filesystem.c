@@ -90,17 +90,17 @@ int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {
    // Separar el comando en tokens
    char *token;
-   char copia[COMMAND_LENGTH];
-   strncpy(copia, commandStr, COMMAND_LENGTH);
-   copia[COMMAND_LENGTH - 1] = '\0';
+   char commandCopy[COMMAND_LENGTH];
+   strncpy(commandCopy, commandStr, COMMAND_LENGTH);
+   commandCopy[COMMAND_LENGTH - 1] = '\0';
 
    // Quitar el salto de línea
-   char *newline = strchr(copia, '\n');
+   char *newline = strchr(commandCopy, '\n');
    if (newline)
       *newline = '\0';
 
    // Obtener el primer token (comando)
-   token = strtok(copia, " ");
+   token = strtok(commandCopy, " ");
    if (token == NULL)
       return -1;
    strcpy(command, token);
