@@ -134,7 +134,7 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
 {
    int i;
 
-   printf(">> bytemaps");
+   printf("bytemaps information:");
 
    // Mostrar el contenido del bytemap de inodos
    printf("\nInodos: ");
