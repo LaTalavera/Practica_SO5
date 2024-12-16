@@ -65,7 +65,7 @@ int main()
          fflush(stdin);
          fgets(command, COMMAND_LENGTH, stdin);
       } while (1); // Change condition to always be true for testing purposes
-      
+      //TODO Uncomment this out once the CheckCommand function is implemented
       // while (CheckCommand(command, order, argument1, argument2) != 0);
       if (strcmp(order, "dir") == 0)
       {
@@ -87,10 +87,11 @@ int main()
       SaveInodesAndDirectory(directory, &inodeBlock, file);
       SaveByteMaps(&byteMaps, file);
       SaveSuperBlock(&superBlock, file);
+      //TODO Uncomment this out once the SaveData function is implemented
       // if (saveDataFlag)
       //    SaveData(data, file);
       // saveDataFlag = 0;
-      // If the command is exit, all metadata will have been written
+      // If the command is exit, all metadata will have been written      
       // missing data and close
       if (strcmp(order, "exit") == 0)
       {
