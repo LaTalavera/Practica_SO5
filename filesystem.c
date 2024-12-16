@@ -42,7 +42,7 @@ int main()
    // Read the entire file at once
    // MORE CODE...
 
-   file = fopen("partition.bin", "r+b");
+   file = fopen("particion.bin", "r+b");
    if (file == NULL)
    {
       perror("Error opening file partition.bin");
@@ -64,7 +64,9 @@ int main()
          printf(">> ");
          fflush(stdin);
          fgets(command, COMMAND_LENGTH, stdin);
-      } while (CheckCommand(command, order, argument1, argument2) != 0);
+      } while (1); // Change condition to always be true for testing purposes
+      
+      // while (CheckCommand(command, order, argument1, argument2) != 0);
       if (strcmp(order, "dir") == 0)
       {
          ListDirectory(directory, &inodeBlock);
@@ -85,9 +87,9 @@ int main()
       SaveInodesAndDirectory(directory, &inodeBlock, file);
       SaveByteMaps(&byteMaps, file);
       SaveSuperBlock(&superBlock, file);
-      if (saveDataFlag)
-         SaveData(data, file);
-      saveDataFlag = 0;
+      // if (saveDataFlag)
+      //    SaveData(data, file);
+      // saveDataFlag = 0;
       // If the command is exit, all metadata will have been written
       // missing data and close
       if (strcmp(order, "exit") == 0)
