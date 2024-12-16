@@ -62,9 +62,13 @@ int main()
    {
       do
       {
-         printf(">> ");
+         printf("\n>> ");
          fgets(command, COMMAND_LENGTH, stdin);
-         clearInputBuffer(); // Clear the input buffer
+         char *newLine = strchr(command, '\n');
+         if(newLine){
+            *newLine = '\0';
+         }
+         // clearInputBuffer(); // Clear the input buffer
       } while (CheckCommand(command, order, argument1, argument2) != 0);
 
       if (strcmp(order, "dir") == 0)
@@ -132,7 +136,7 @@ int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
 {
    // Print superblock information
-   printf("\n\nSuperblock Information:\n");
+   printf("\nSuperblock Information:\n");
    printf("Total inodes: %u\n", superBlock->total_inodes);
    printf("Total blocks: %u\n", superBlock->total_blocks);
    printf("Free blocks: %u\n", superBlock->free_blocks);
@@ -146,7 +150,7 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
 {
    int i;
 
-   printf("\n\nByte maps information:");
+   printf("\nByte maps information:");
 
    // Display the contents of the inode bytemap
    printf("\nInodes: ");
@@ -162,7 +166,6 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
       printf("%u ", byteMaps->block_bytemap[i]);
    }
    printf("\n");
-   printf(">>");
 }
 
 
@@ -183,7 +186,7 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
       inode = &inodes->inodes[directory[i].inode];
 
       // Print file name, size, and inode
-      printf("\n\n%-20s size:%-6u inode:%-2d blocks:",
+      printf("\n%-20s size:%-6u inode:%-2d blocks:",
              directory[i].file_name, // File name
              inode->file_size,       // File size
              directory[i].inode);    // Inode number
