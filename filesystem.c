@@ -8,7 +8,7 @@
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
 void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
-void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); //for the info command.
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); // for the info command.
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
@@ -19,7 +19,6 @@ void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *ino
 void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
-
 
 int main()
 {
@@ -43,8 +42,9 @@ int main()
    // Read the entire file at once
    // MORE CODE...
 
-   file = fopen("partition.bin", "r+b");
-   if (file == NULL){
+   file = fopen("particion.bin", "r+b");
+   if (file == NULL)
+   {
       perror("Error opening file partition.bin");
       return 1;
    }
@@ -64,37 +64,109 @@ int main()
          printf(">> ");
          fflush(stdin);
          fgets(command, COMMAND_LENGTH, stdin);
-      } while (CheckCommand(command, order, argument1, argument2) != 0);
+      } while (1); // Change condition to always be true for testing purposes
+      //TODO Uncomment this out once the CheckCommand function is implemented
+      // while (CheckCommand(command, order, argument1, argument2) != 0);
       if (strcmp(order, "dir") == 0)
       {
-         ListDirectory(&directory, &inodeBlock);
+         ListDirectory(directory, &inodeBlock);
+         continue;
+      }
+      else if (strcmp(order, "info") == 0)
+      {
+         PrintSuperBlock(&superBlock);
+         continue;
+      }
+      else if (strcmp(order, "bytemaps") == 0)
+      {
+         PrintByteMaps(&byteMaps);
          continue;
       }
       // MORE CODE...
       // Write metadata in rename, remove, copy commands
-      SaveInodesAndDirectory(&directory, &inodeBlock, file);
+      SaveInodesAndDirectory(directory, &inodeBlock, file);
       SaveByteMaps(&byteMaps, file);
       SaveSuperBlock(&superBlock, file);
-      if (saveDataFlag)
-         SaveData(&data, file);
-      saveDataFlag = 0;
-      // If the command is exit, all metadata will have been written
+      //TODO Uncomment this out once the SaveData function is implemented
+      // if (saveDataFlag)
+      //    SaveData(data, file);
+      // saveDataFlag = 0;
+      // If the command is exit, all metadata will have been written      
       // missing data and close
       if (strcmp(order, "exit") == 0)
       {
-         SaveData(&data, file);
+         SaveData(data, file);
          fclose(file);
          return 0;
       }
    }
 }
 
-void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock) {
-    printf("Información del Superbloque:\n");
-    printf("Inodos totales: %u\n", superBlock->total_inodes);
-    printf("Bloques totales: %u\n", superBlock->total_blocks);
-    printf("Bloques libres: %u\n", superBlock->free_blocks);
-    printf("Inodos libres: %u\n", superBlock->free_inodes);
-    printf("Primer bloque de datos: %u\n", superBlock->first_data_block);
-    printf("Tamaño de bloque: %u bytes\n", superBlock->block_size);
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
+{
+   printf("Información del Superbloque:\n");
+   printf("Inodos totales: %u\n", superBlock->total_inodes);
+   printf("Bloques totales: %u\n", superBlock->total_blocks);
+   printf("Bloques libres: %u\n", superBlock->free_blocks);
+   printf("Inodos libres: %u\n", superBlock->free_inodes);
+   printf("Primer bloque de datos: %u\n", superBlock->first_data_block);
+   printf("Tamaño de bloque: %u bytes\n", superBlock->block_size);
+}
+
+void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
+{
+   int i;
+
+   printf(">> bytemaps");
+
+   // Mostrar el contenido del bytemap de inodos
+   printf("\nInodos: ");
+   for (i = 0; i < MAX_INODES; i++)
+   {
+      printf("%u ", byteMaps->inode_bytemap[i]);
+   }
+
+   // Mostrar el contenido del bytemap de bloques (primeros 25 elementos)
+   printf("Bloques [0-25]: ");
+   for (i = 0; i < 25; i++)
+   {
+      printf("%u ", byteMaps->block_bytemap[i]);
+   }
+
+   printf(">>");
+}
+
+void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
+{
+   int i, j;
+   EXT_SIMPLE_INODE *inode;
+
+   for (i = 0; i < MAX_FILES; i++)
+   {
+      // Ignorar entradas vacías y la entrada especial "."
+      if (directory[i].inode == 0xFFFF || strcmp(directory[i].file_name, ".") == 0)
+      {
+         continue;
+      }
+
+      // Obtener el inodo correspondiente
+      inode = &inodes->inodes[directory[i].inode];
+
+      // Imprimir nombre del fichero, tamaño e inodo
+      printf("%-20s tamaño:%-6u inodo:%-2d bloques:",
+             directory[i].file_name, // Nombre del fichero
+             inode->file_size,       // Tamaño del fichero
+             directory[i].inode);    // Número de inodo
+
+      // Imprimir bloques ocupados
+      for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
+      {
+         if (inode->block_numbers[j] != 0xFFFF)
+         { // Ignorar bloques no asignados
+            printf(" %u", inode->block_numbers[j]);
+         }
+      }
+
+      printf("\n");
+   }
 }
