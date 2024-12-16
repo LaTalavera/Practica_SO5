@@ -24,3 +24,8 @@ jobs:
     - name: Build
       run: |
         gcc -o filesystem filesystem.c
+
+    - name: Static analysis
+      run: |
+        sudo apt-get install -y cppcheck
+        cppcheck --enable=all --error-exitcode=1 --inconclusive --force .
