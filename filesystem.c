@@ -89,7 +89,6 @@ int main()
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {
    // Separar el comando en tokens
-   // Ejemplo simplificado
    char *token;
    char copia[COMMAND_LENGTH];
    strncpy(copia, commandStr, COMMAND_LENGTH);
@@ -100,15 +99,20 @@ int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
    if (newline)
       *newline = '\0';
 
+   // Obtener el primer token (comando)
    token = strtok(copia, " ");
    if (token == NULL)
       return -1;
    strcpy(command, token);
+
+   // Obtener el segundo token (primer argumento)
    token = strtok(NULL, " ");
    if (token)
       strcpy(arg1, token);
    else
       arg1[0] = '\0';
+
+   // Obtener el tercer token (segundo argumento)
    token = strtok(NULL, " ");
    if (token)
       strcpy(arg2, token);
