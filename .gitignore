@@ -4,3 +4,4 @@ build/
 .DS_Store
 filesystem.exe
 filesystem
+test_filesystem.exe
