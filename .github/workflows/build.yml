@@ -29,8 +29,8 @@ jobs:
       run: |
         sudo apt-get install -y cppcheck
         cppcheck --enable=all --error-exitcode=1 --inconclusive --force 
-        --include=./filesystem.c
-        --include=./headers.h
+        --include=./filesystem.c \
+        --include=./headers.h \
         --exclude=tests/unity.c \
         --exclude=tests/unity.h \
         --exclude=tests/unity_internals.h \
