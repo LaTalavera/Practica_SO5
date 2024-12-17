@@ -4,17 +4,19 @@
 #include "headers.h"
 
 #define COMMAND_LENGTH 100
-
+//TODO check relation between all these functions and the exercise requirementes, to make sure we need them all
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
 void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); // for the info command.
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
+
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
 int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name);
 int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, char *name, FILE *file);
 int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *sourceName, char *destName, FILE *file);
+
 void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, FILE *file);
 void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
@@ -40,9 +42,8 @@ int main()
    EXT_DIRECTORY_ENTRY directory[MAX_FILES];
    EXT_DATA data[MAX_DATA_BLOCKS];
    EXT_DATA fileData[MAX_PARTITION_BLOCKS];
-   FILE *file;
 
-   file = fopen("particion.bin", "r+b");
+   FILE *file = fopen("particion.bin", "r+b");
    if (file == NULL)
    {
       perror("Error opening file particion.bin");
