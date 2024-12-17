@@ -12,7 +12,7 @@ void clearInputBuffer()
    while ((c = getchar()) != '\n' && c != EOF)
       ;
 }
-
+//test commit
 #ifndef TEST
 int main()
 {
