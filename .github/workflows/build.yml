@@ -72,7 +72,7 @@ jobs:
 
     - name: Compile unit tests
       run: |
-        gcc -Itests -I. -o test_filesystem tests/test_filesystem.c filesystem.c tests/unity.c -Wall -Werror
+        gcc -Itests -I. -DTEST -o test_filesystem tests/test_filesystem.c filesystem.c tests/unity.c -Wall -Werror
 
     - name: Run unit tests
       run: |
