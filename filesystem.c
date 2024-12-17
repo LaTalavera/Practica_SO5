@@ -99,6 +99,18 @@ int main()
          }
          continue;
       }
+      else if (strcmp(order, "print") == 0)
+      {
+         if (strlen(argument1) == 0)
+         {
+            printf("Usage: print <file_name>\n");
+         }
+         else
+         {
+            PrintFile(directory, &inodeBlock, data, argument1);
+         }
+         continue;
+      }
       else if (strcmp(order, "exit") == 0)
       {
          // TODO uncomment it out once Savedata is implemented
@@ -216,49 +228,90 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name)
 {
-    int i;
+   int i;
 
-    // Iterate through the directory to find the file
-    for (i = 0; i < MAX_FILES; i++)
-    {
-        if (directory[i].inode != 0xFFFF && strcmp(directory[i].file_name, name) == 0)
-        {
-            return i; // Return the index of the file
-        }
-    }
+   // Iterate through the directory to find the file
+   for (i = 0; i < MAX_FILES; i++)
+   {
+      if (directory[i].inode != 0xFFFF && strcmp(directory[i].file_name, name) == 0)
+      {
+         return i; // Return the index of the file
+      }
+   }
 
-    return -1; // File not found
+   return -1; // File not found
 }
-
 
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName)
 {
-    // Verify that the file names are not null or empty
-    if (oldName == NULL || newName == NULL || strlen(newName) == 0)
-    {
-        printf("Invalid file names.\n");
-        return -1;
-    }
+   // Verify that the file names are not null or empty
+   if (oldName == NULL || newName == NULL || strlen(newName) == 0)
+   {
+      printf("Invalid file names.\n");
+      return -1;
+   }
 
-    // Find the file with the old name
-    int fileIndex = FindFile(directory, inodes, oldName);
-    if (fileIndex == -1)
-    {
-        printf("File '%s' not found.\n", oldName);
-        return -1;
-    }
+   // Find the file with the old name
+   int fileIndex = FindFile(directory, inodes, oldName);
+   if (fileIndex == -1)
+   {
+      printf("File '%s' not found.\n", oldName);
+      return -1;
+   }
 
-    // Check if a file with the new name already exists
-    if (FindFile(directory, inodes, newName) != -1)
-    {
-        printf("A file with the name '%s' already exists.\n", newName);
-        return -1;
-    }
+   // Check if a file with the new name already exists
+   if (FindFile(directory, inodes, newName) != -1)
+   {
+      printf("A file with the name '%s' already exists.\n", newName);
+      return -1;
+   }
 
-    // Rename the file
-    strncpy(directory[fileIndex].file_name, newName, sizeof(directory[fileIndex].file_name) - 1);
-    directory[fileIndex].file_name[sizeof(directory[fileIndex].file_name) - 1] = '\0'; // Ensure null termination
-    printf("File renamed from '%s' to '%s'.\n", oldName, newName);
+   // Rename the file
+   strncpy(directory[fileIndex].file_name, newName, sizeof(directory[fileIndex].file_name) - 1);
+   directory[fileIndex].file_name[sizeof(directory[fileIndex].file_name) - 1] = '\0'; // Ensure null termination
+   printf("File renamed from '%s' to '%s'.\n", oldName, newName);
 
-    return 0;
+   return 0;
+}
+
+int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name)
+{
+   // Find the file using FindFile
+   int fileIndex = FindFile(directory, inodes, name);
+
+   if (fileIndex == -1)
+   {
+      printf("File '%s' not found.\n", name);
+      return -1;
+   }
+
+   // Get the inode of the file
+   EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[fileIndex].inode];
+
+   // Check if the file size is valid
+   if (inode->file_size == 0)
+   {
+      printf("File '%s' is empty.\n", name);
+      return 0;
+   }
+
+   // Print the file content block by block
+   printf("Content of file '%s':\n", name);
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   {
+      // Skip unassigned blocks
+      if (inode->block_numbers[i] == 0xFFFF)
+      {
+         continue;
+      }
+
+      // Get the block data
+      EXT_DATA *block = &data[inode->block_numbers[i]];
+
+      // Print the content of the block
+      printf("%s", (char *)block);
+   }
+
+   printf("\n");
+   return 0;
 }
