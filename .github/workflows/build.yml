@@ -19,7 +19,17 @@ jobs:
     - name: Install GCC
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential
+
+    - name: Install cppcheck from source
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git cmake g++ make
+        git clone https://github.com/danmar/cppcheck.git
+        cd cppcheck
+        git checkout master
+        mkdir build && cd build
+        cmake ..
+        make install
 
     - name: Build
       run: |
