@@ -26,7 +26,7 @@ jobs:
         sudo apt-get install -y git cmake g++ make
         git clone https://github.com/danmar/cppcheck.git
         cd cppcheck
-        git checkout master
+        git checkout main
         mkdir build && cd build
         cmake ..
         make install
