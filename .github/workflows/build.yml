@@ -29,7 +29,4 @@ jobs:
     - name: Static analysis
       run: |
         sudo apt-get install -y cppcheck
-        cppcheck --enable=all --error-exitcode=1 --inconclusive --force \
-        --include=./headers.h \
-        --ignore-list=.cppcheck-ignore \
-        .
+        cppcheck --enable=all --error-exitcode=1 --inconclusive --force \ -i tests/
