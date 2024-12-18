@@ -31,10 +31,10 @@ int main()
    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
    memcpy(&byteMaps, (EXT_BYTE_MAPS *)&fileData[1], BLOCK_SIZE);
    memcpy(&inodeBlock, (EXT_INODE_BLOCK *)&fileData[2], BLOCK_SIZE);
-   memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES); // TODO double check if this is correct or is ok as it comes in the example file
-   memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE);
-
-   // Command processing loop
+   memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES); 
+   memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE); 
+   
+  // Command processing loop
    for (;;)
    {
       do
@@ -252,46 +252,76 @@ int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *ol
    return 0;
 }
 
-int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name)
-{
-   // Find the file using FindFile
-   int fileIndex = FindFile(directory, inodes, name);
+#include <stdlib.h> // Required for malloc and free
 
-   if (fileIndex == -1)
-   {
-      printf("File '%s' not found.\n", name);
-      return -1;
-   }
+int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name) {
+    // Find the file using FindFile
+    int fileIndex = FindFile(directory, inodes, name);
 
-   // Get the inode of the file
-   EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[fileIndex].inode];
+    if (fileIndex == -1) {
+        printf("File '%s' not found.\n", name);
+        return -1;
+    }
 
-   // Check if the file size is valid
-   if (inode->file_size == 0)
-   {
-      printf("File '%s' is empty.\n", name);
-      return 0;
-   }
+    // Get the inode of the file
+    EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[fileIndex].inode];
 
-   // Print the file content block by block
-   printf("Content of file '%s':\n", name);
-   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
-   {
-      // Skip unassigned blocks
-      if (inode->block_numbers[i] == 0xFFFF)
-      {
-         continue;
-      }
+    // Check if the file size is valid
+    if (inode->file_size == 0) {
+        printf("File '%s' is empty.\n", name);
+        return 0;
+    }
 
-      // Get the block data
-      EXT_DATA *block = &data[inode->block_numbers[i]];
+    // Allocate buffer to hold file content
+    unsigned char *buffer = malloc(inode->file_size + 1); // +1 for null terminator
+    if (!buffer) {
+        perror("Memory allocation failed");
+        return -1;
+    }
 
-      // Print the content of the block
-      printf("%s", (char *)block);
-   }
+    size_t bytesCopied = 0;
+    memset(buffer, 0, inode->file_size + 1); // Initialize buffer
 
-   printf("\n");
-   return 0;
+    for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++) {
+        if (inode->block_numbers[i] == NULL_BLOCK) {
+            continue;
+        }
+
+        int blockNumber = inode->block_numbers[i];
+
+        // Ensure blockNumber is within valid range
+        if (blockNumber < FIRST_DATA_BLOCK || blockNumber >= (FIRST_DATA_BLOCK + MAX_DATA_BLOCKS)) {
+            printf("Error: Invalid block number %u for file '%s'.\n", blockNumber, name);
+            continue;
+        }
+
+        // Map block number to data array index
+        int dataIndex = blockNumber - FIRST_DATA_BLOCK;
+
+        // Additional boundary check
+        if (dataIndex < 0 || dataIndex >= MAX_DATA_BLOCKS) {
+            printf("Error: Data index %d out of bounds for block %u.\n", dataIndex, blockNumber);
+            continue;
+        }
+
+        EXT_DATA *block = &data[dataIndex];
+
+        // Determine how many bytes to copy from this block
+        size_t bytesToCopy = (inode->file_size - bytesCopied) < BLOCK_SIZE ? (inode->file_size - bytesCopied) : BLOCK_SIZE;
+        memcpy(buffer + bytesCopied, block->data, bytesToCopy);
+        bytesCopied += bytesToCopy;
+
+        if (bytesCopied >= inode->file_size) {
+            break;
+        }
+    }
+
+    buffer[inode->file_size] = '\0'; // Ensure null termination
+
+    printf("Content of file '%s':\n%s\n", name, buffer);
+
+    free(buffer);
+    return 0;
 }
 
 //Helper functions
