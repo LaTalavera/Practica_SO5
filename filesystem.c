@@ -28,7 +28,8 @@ void clearInputBuffer()
    while ((c = getchar()) != '\n' && c != EOF)
       ;
 }
-
+//test commit
+#ifndef TEST
 int main()
 {
    char command[COMMAND_LENGTH];
@@ -120,6 +121,7 @@ int main()
       }
    }
 }
+#endif
 
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {

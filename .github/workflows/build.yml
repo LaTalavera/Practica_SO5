@@ -1,4 +1,4 @@
-name: Build
+name: CI Pipeline
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
 
 jobs:
   build:
+    name: Build the application
     runs-on: ubuntu-latest
 
     steps:
@@ -21,11 +22,64 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential
 
-    - name: Build
+    - name: Compile the main program
       run: |
         gcc -o filesystem filesystem.c
 
-    - name: Static analysis
+    - name: Save build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: filesystem-executable
+        path: filesystem
+
+  static_analysis:
+    name: Run Static Analysis
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install cppcheck
       run: |
+        sudo apt-get update
         sudo apt-get install -y cppcheck
-        cppcheck --enable=all --error-exitcode=1 --inconclusive --force --include=./headers.h .
+        cppcheck --version
+
+    - name: Static analysis with cppcheck
+      run: |
+        cppcheck ./headers.h ./filesystem.c \
+          --enable=all \
+          --error-exitcode=1 \
+          --inconclusive \
+          --force \
+          -itests
+
+  unit_tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install GCC and Unity
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Compile unit tests
+      run: |
+        gcc -Itests -I. -DTEST -o test_filesystem tests/test_filesystem.c filesystem.c tests/unity.c -Wall -Werror
+
+    - name: Run unit tests
+      run: |
+        ./test_filesystem
+
+    - name: Save test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: unit-test-results
+        path: ./test_filesystem

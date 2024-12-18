@@ -3,8 +3,7 @@
 #define MAX_FILES 20
 #define MAX_DATA_BLOCKS 96
 #define FIRST_DATA_BLOCK 4
-#define MAX_PARTITION_BLOCKS (MAX_DATA_BLOCKS + FIRST_DATA_BLOCK)
-  // superblock + inode and block bytemaps + inodes + directory
+#define MAX_PARTITION_BLOCKS (MAX_DATA_BLOCKS + FIRST_DATA_BLOCK)  // superblock + inode and block bytemaps + inodes + directory
 #define MAX_INODE_BLOCK_NUMS 7
 #define FILE_NAME_LENGTH 17
 #define NULL_INODE 0xFFFF
@@ -50,3 +49,19 @@ typedef struct {
 typedef struct {
   unsigned char data[BLOCK_SIZE]; 	
 } EXT_DATA;
+
+//TODO check relation between all these functions and the exercise requirementes, to make sure we need them all
+void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
+int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
+void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); // for the info command.
+int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
+void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
+int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
+int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name);
+int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, char *name, FILE *file);
+int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *sourceName, char *destName, FILE *file);
+void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, FILE *file);
+void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
+void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
+void SaveData(EXT_DATA *data, FILE *file);
