@@ -5,3 +5,5 @@ build/
 filesystem.exe
 filesystem
 test_filesystem.exe
+filesystem.dSYM/Contents/Info.plist
+filesystem.dSYM/Contents/Resources/Relocations/aarch64/filesystem.yml

@@ -291,16 +291,16 @@ int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA 
 
         // Ensure blockNumber is within valid range
         if (blockNumber < FIRST_DATA_BLOCK || blockNumber >= (FIRST_DATA_BLOCK + MAX_DATA_BLOCKS)) {
-            printf("Error: Invalid block number %u for file '%s'.\n", blockNumber, name);
+            printf("Error: Invalid block number %d for file '%s'.\n", blockNumber, name);
             continue;
         }
 
         // Map block number to data array index
         int dataIndex = blockNumber - FIRST_DATA_BLOCK;
 
-        // Additional boundary check
-        if (dataIndex < 0 || dataIndex >= MAX_DATA_BLOCKS) {
-            printf("Error: Data index %d out of bounds for block %u.\n", dataIndex, blockNumber);
+        // Boundary check
+        if (dataIndex >= MAX_DATA_BLOCKS) {
+            printf("Error: Data index %d out of bounds for block %d.\n", dataIndex, blockNumber);
             continue;
         }
 
@@ -322,12 +322,4 @@ int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA 
 
     free(buffer);
     return 0;
-}
-
-//Helper functions
-void clearInputBuffer()
-{
-   int c;
-   while ((c = getchar()) != '\n' && c != EOF)
-      ;
 }
