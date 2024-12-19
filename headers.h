@@ -53,8 +53,8 @@ typedef struct {
 //TODO check relation between all these functions and the exercise requirementes, to make sure we need them all
 void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
-void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
-void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); // for the info command.
+void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); //NOT USED FOR NOW
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); 
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
