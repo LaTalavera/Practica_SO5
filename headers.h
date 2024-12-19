@@ -69,3 +69,4 @@ void SaveData(EXT_DATA *data, FILE *file);
 void SaveInodeBlock(EXT_INODE_BLOCK *inodeBlock, FILE *file);
 //helper functions
 void DebugListAllDirectoryEntries(EXT_DIRECTORY_ENTRY *directory);
+void ClearScreen();

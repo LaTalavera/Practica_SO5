@@ -9,141 +9,167 @@
 #ifndef TEST
 int main()
 {
-    char command[COMMAND_LENGTH];
-    char order[COMMAND_LENGTH];
-    char argument1[COMMAND_LENGTH];
-    char argument2[COMMAND_LENGTH];
+   char command[COMMAND_LENGTH];
+   char order[COMMAND_LENGTH];
+   char argument1[COMMAND_LENGTH];
+   char argument2[COMMAND_LENGTH];
 
-    EXT_SIMPLE_SUPERBLOCK superBlock;
-    EXT_BYTE_MAPS byteMaps;
-    EXT_INODE_BLOCK inodeBlock;
-    EXT_DIRECTORY_ENTRY directory[MAX_FILES];
-    EXT_DATA data[MAX_DATA_BLOCKS];
-    EXT_DATA fileData[MAX_PARTITION_BLOCKS];
+   EXT_SIMPLE_SUPERBLOCK superBlock;
+   EXT_BYTE_MAPS byteMaps;
+   EXT_INODE_BLOCK inodeBlock;
+   EXT_DIRECTORY_ENTRY directory[MAX_FILES];
+   EXT_DATA data[MAX_DATA_BLOCKS];
+   EXT_DATA fileData[MAX_PARTITION_BLOCKS];
 
-    FILE *file = fopen("particion.bin", "r+b");
-    if (file == NULL)
-    {
-        perror("Error opening file particion.bin");
-        return 1;
-    }
-    fread(&fileData, BLOCK_SIZE, MAX_PARTITION_BLOCKS, file);
+   FILE *file = fopen("particion.bin", "r+b");
+   if (file == NULL)
+   {
+      perror("Error opening file particion.bin");
+      return 1;
+   }
+   fread(&fileData, BLOCK_SIZE, MAX_PARTITION_BLOCKS, file);
 
-    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
-    memcpy(&byteMaps, (EXT_BYTE_MAPS *)&fileData[1], BLOCK_SIZE);
-    memcpy(&inodeBlock, (EXT_INODE_BLOCK *)&fileData[2], BLOCK_SIZE);
-    memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES);
-    memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE);
+   memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
+   memcpy(&byteMaps, (EXT_BYTE_MAPS *)&fileData[1], BLOCK_SIZE);
+   memcpy(&inodeBlock, (EXT_INODE_BLOCK *)&fileData[2], BLOCK_SIZE);
+   memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES);
+   memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE);
 
-    // Command processing loop
-    for (;;)
-    {
-        do
-        {
-            printf("\n>> ");
-            fgets(command, COMMAND_LENGTH, stdin);
-            char *newLine = strchr(command, '\n');
-            if (newLine)
-            {
-                *newLine = '\0';
-            }
-            // clearInputBuffer(); // Clear the input buffer
-        } while (CheckCommand(command, order, argument1, argument2) != 0);
+   // Command processing loop
+   for (;;)
+   {
+      do
+      {
+         printf("\n>> ");
+         fgets(command, COMMAND_LENGTH, stdin);
+         char *newLine = strchr(command, '\n');
+         if (newLine)
+         {
+            *newLine = '\0';
+         }
+         // clearInputBuffer(); // Clear the input buffer
+      } while (CheckCommand(command, order, argument1, argument2) != 0);
 
-        if (strcmp(order, "dir") == 0)
-        {
-            ListDirectory(directory, &inodeBlock);
-            continue;
-        }
-        else if (strcmp(order, "info") == 0)
-        {
-            PrintSuperBlock(&superBlock);
-            continue;
-        }
-        else if (strcmp(order, "bytemaps") == 0)
-        {
-            PrintByteMaps(&byteMaps);
-            continue;
-        }
-        else if (strcmp(order, "rename") == 0)
-        {
-            if (strlen(argument1) == 0 || strlen(argument2) == 0)
+      if (strcmp(order, "dir") == 0)
+      {
+         ListDirectory(directory, &inodeBlock);
+         continue;
+      }
+      else if (strcmp(order, "info") == 0)
+      {
+         PrintSuperBlock(&superBlock);
+         continue;
+      }
+      else if (strcmp(order, "bytemaps") == 0)
+      {
+         PrintByteMaps(&byteMaps);
+         continue;
+      }
+      else if (strcmp(order, "rename") == 0)
+      {
+         if (strlen(argument1) == 0 || strlen(argument2) == 0)
+         {
+            printf("Usage: rename <old_name> <new_name>\n");
+         }
+         else
+         {
+            if (RenameFile(directory, &inodeBlock, argument1, argument2) == 0)
             {
-                printf("Usage: rename <old_name> <new_name>\n");
+               SaveInodesAndDirectory(directory, &inodeBlock, file);
+               SaveByteMaps(&byteMaps, file);
+               SaveSuperBlock(&superBlock, file);
             }
-            else
+         }
+         continue;
+      }
+      else if (strcmp(order, "print") == 0)
+      {
+         if (strlen(argument1) == 0)
+         {
+            printf("Usage: print <file_name>\n");
+         }
+         else
+         {
+            PrintFile(directory, &inodeBlock, data, argument1);
+         }
+         continue;
+      }
+      else if (strcmp(order, "remove") == 0)
+      {
+         if (strlen(argument1) == 0)
+         {
+            printf("Usage: remove <file_name>\n");
+         }
+         else
+         {
+            if (DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1) == 0)
             {
-                if (RenameFile(directory, &inodeBlock, argument1, argument2) == 0)
-                {
-                    SaveInodesAndDirectory(directory, &inodeBlock, file);
-                    SaveByteMaps(&byteMaps, file);
-                    SaveSuperBlock(&superBlock, file);
-                }
+               SaveInodesAndDirectory(directory, &inodeBlock, file);
+               SaveByteMaps(&byteMaps, file);
+               SaveSuperBlock(&superBlock, file);
+               SaveData(data, file); // Save data after deletion
             }
-            continue;
-        }
-        else if (strcmp(order, "print") == 0)
-        {
-            if (strlen(argument1) == 0)
+         }
+         continue;
+      }
+      else if (strcmp(order, "copy") == 0)
+      {
+         if (strlen(argument1) == 0 || strlen(argument2) == 0)
+         {
+            printf("Usage: copy <source_file> <destination_file>\n");
+         }
+         else
+         {
+            if (CopyFile(directory, &inodeBlock, &byteMaps, &superBlock, data, argument1, argument2, file) == 0)
             {
-                printf("Usage: print <file_name>\n");
+               SaveInodesAndDirectory(directory, &inodeBlock, file);
+               SaveByteMaps(&byteMaps, file);
+               SaveSuperBlock(&superBlock, file);
+               SaveData(data, file); // Save data after copying
             }
-            else
-            {
-                PrintFile(directory, &inodeBlock, data, argument1);
-            }
-            continue;
-        }
-        else if (strcmp(order, "remove") == 0)
-        {
-            if (strlen(argument1) == 0)
-            {
-                printf("Usage: remove <file_name>\n");
-            }
-            else
-            {
-                if (DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1) == 0)
-                {
-                    SaveInodesAndDirectory(directory, &inodeBlock, file);
-                    SaveByteMaps(&byteMaps, file);
-                    SaveSuperBlock(&superBlock, file);
-                    SaveData(data, file); // Save data after deletion
-                }
-            }
-            continue;
-        }
-        else if (strcmp(order, "copy") == 0)
-        {
-            if (strlen(argument1) == 0 || strlen(argument2) == 0)
-            {
-                printf("Usage: copy <source_file> <destination_file>\n");
-            }
-            else
-            {
-                if (CopyFile(directory, &inodeBlock, &byteMaps, &superBlock, data, argument1, argument2, file) == 0)
-                {
-                    SaveInodesAndDirectory(directory, &inodeBlock, file);
-                    SaveByteMaps(&byteMaps, file);
-                    SaveSuperBlock(&superBlock, file);
-                    SaveData(data, file); // Save data after copying
-                }
-            }
-            continue;
-        }
-        else if (strcmp(command, "debug") == 0)
-        {
-            DebugListAllDirectoryEntries(directory);
-        }
-        else if (strcmp(order, "exit") == 0)
-        {
-            SaveInodesAndDirectory(directory, &inodeBlock, file);
-            SaveByteMaps(&byteMaps, file);
-            SaveSuperBlock(&superBlock, file);
-            SaveData(data, file);
-            fclose(file);
-            return 0;
-        }
-    }
+         }
+         continue;
+      }
+      else if (strcmp(command, "debug") == 0)
+      {
+         DebugListAllDirectoryEntries(directory);
+      }
+      else if (strcmp(order, "help") == 0)
+      {
+         printf("\nAvailable Commands:\n");
+         printf("  dir               - List all files in the directory.\n");
+         printf("  info              - Display superblock information.\n");
+         printf("  bytemaps          - Display byte maps information.\n");
+         printf("  rename <old> <new> - Rename a file.\n");
+         printf("  print <file>      - Display the content of a file.\n");
+         printf("  remove <file>     - Delete a file.\n");
+         printf("  copy <src> <dst>  - Copy a file.\n");
+         printf("  clear             - Clear the terminal screen.\n");
+         printf("  debug             - List all directory entries (debug mode).\n");
+         printf("  exit              - Save changes and exit the program.\n\n");
+         continue;
+      }
+      else if (strcmp(order, "clear") == 0)
+      {
+         ClearScreen();
+         continue;
+      }
+      else if (strcmp(order, "exit") == 0)
+      {
+         SaveInodesAndDirectory(directory, &inodeBlock, file);
+         SaveByteMaps(&byteMaps, file);
+         SaveSuperBlock(&superBlock, file);
+         SaveData(data, file);
+         fclose(file);
+         return 0;
+      }
+      else
+      {
+         printf("Error: Invalid command '%s'. Please try again.\n", order);
+         printf("Type 'help' to see the list of available commands.\n");
+         continue;
+      }
+   }
 }
 #endif
 
@@ -424,7 +450,6 @@ int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE
    printf("File '%s' deleted successfully.\n", name);
    return 0;
 }
-
 int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps,
              EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data,
              char *sourceName, char *destName, FILE *file)
@@ -460,7 +485,7 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
    int destInodeIndex = -1;
    for (int i = 0; i < MAX_INODES; i++)
    {
-      if (byteMaps->inode_bytemap[i] == 0 && i != 0 && i != 1 && i != 2)
+      if (byteMaps->inode_bytemap[i] == 0 && i > 2) // inodes 0,1 reserved, 2 directory
       {
          destInodeIndex = i;
          break;
@@ -485,84 +510,83 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
       destInode->block_numbers[i] = NULL_BLOCK;
    }
 
-   // Copy data blocks
-   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   unsigned char buffer[BLOCK_SIZE];
+
+   // Copy data blocks from memory instead of disk
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS && sourceInode->block_numbers[i] != NULL_BLOCK; i++)
    {
-      if (sourceInode->block_numbers[i] != NULL_BLOCK)
+      // Find the first free block
+      int destBlockNum = -1;
+      for (int j = FIRST_DATA_BLOCK; j < MAX_PARTITION_BLOCKS; j++)
       {
-         // Find the first free block
-         int destBlockNum = -1;
-         for (int j = FIRST_DATA_BLOCK; j < MAX_PARTITION_BLOCKS; j++)
+         if (byteMaps->block_bytemap[j] == 0)
          {
-            if (byteMaps->block_bytemap[j] == 0)
+            destBlockNum = j;
+            break;
+         }
+      }
+
+      if (destBlockNum == -1)
+      {
+         printf("No free blocks available to copy data.\n");
+         // Free allocated resources before exiting
+         byteMaps->inode_bytemap[destInodeIndex] = 0;
+         superBlock->free_inodes++;
+         memset(destInode, 0, sizeof(EXT_SIMPLE_INODE));
+         return -1;
+      }
+
+      // Mark the block as occupied
+      byteMaps->block_bytemap[destBlockNum] = 1;
+      superBlock->free_blocks--;
+
+      // Assign the block number to the destination inode
+      destInode->block_numbers[i] = destBlockNum;
+
+      // Calculate the data index for the source block in memory
+      int dataIndex = sourceInode->block_numbers[i] - FIRST_DATA_BLOCK;
+      if (dataIndex < 0 || dataIndex >= MAX_DATA_BLOCKS)
+      {
+         printf("Invalid data index %d for block %d.\n", dataIndex, sourceInode->block_numbers[i]);
+         // Rollback changes
+         for (int k = 0; k < i; k++)
+         {
+            if (destInode->block_numbers[k] != NULL_BLOCK)
             {
-               destBlockNum = j;
-               break;
+               byteMaps->block_bytemap[destInode->block_numbers[k]] = 0;
+               superBlock->free_blocks++;
+               destInode->block_numbers[k] = NULL_BLOCK;
             }
          }
-
-         if (destBlockNum == -1)
-         {
-            printf("No free blocks available to copy data.\n");
-            // Free allocated resources before exiting
-            byteMaps->inode_bytemap[destInodeIndex] = 0;
-            superBlock->free_inodes++;
-            memset(destInode, 0, sizeof(EXT_SIMPLE_INODE));
-            return -1;
-         }
-
-         // Mark the block as occupied
-         byteMaps->block_bytemap[destBlockNum] = 1;
-         superBlock->free_blocks--;
-
-         // Assign the block number to the destination inode
-         destInode->block_numbers[i] = destBlockNum;
-
-         // Calculate offsets in the file for source and destination blocks
-         long sourceOffset = sourceInode->block_numbers[i] * BLOCK_SIZE;
-         long destOffset = destBlockNum * BLOCK_SIZE;
-
-         // Read data from the source block
-         if (fseek(file, sourceOffset, SEEK_SET) != 0)
-         {
-            printf("Error seeking to source block %d.\n", sourceInode->block_numbers[i]);
-            return -1;
-         }
-
-         unsigned char buffer[BLOCK_SIZE];
-         size_t bytesRead = fread(buffer, 1, BLOCK_SIZE, file);
-         if (bytesRead != BLOCK_SIZE && ferror(file))
-         {
-            printf("Error reading from source block %d.\n", sourceInode->block_numbers[i]);
-            return -1;
-         }
-
-         // Write data to the destination block
-         if (fseek(file, destOffset, SEEK_SET) != 0)
-         {
-            printf("Error seeking to destination block %d.\n", destBlockNum);
-            return -1;
-         }
-
-         size_t bytesWritten = fwrite(buffer, 1, BLOCK_SIZE, file);
-         if (bytesWritten != BLOCK_SIZE)
-         {
-            printf("Error writing to destination block %d.\n", destBlockNum);
-            return -1;
-         }
-
-         // Update the data array in memory
-         memcpy(data[destBlockNum].data, buffer, BLOCK_SIZE);
+         byteMaps->inode_bytemap[destInodeIndex] = 0;
+         superBlock->free_inodes++;
+         memset(destInode, 0, sizeof(EXT_SIMPLE_INODE));
+         return -1;
       }
-      else
+
+      // Copy block from in-memory data
+      memcpy(buffer, data[dataIndex].data, BLOCK_SIZE);
+
+      // Write data to the destination block on disk
+      long destOffset = destBlockNum * BLOCK_SIZE;
+      if (fseek(file, destOffset, SEEK_SET) != 0)
       {
-         // No more blocks to copy
-         break;
+         printf("Error seeking to destination block %d.\n", destBlockNum);
+         return -1;
       }
+
+      size_t bytesWritten = fwrite(buffer, 1, BLOCK_SIZE, file);
+      if (bytesWritten != BLOCK_SIZE)
+      {
+         printf("Error writing to destination block %d.\n", destBlockNum);
+         return -1;
+      }
+
+      // Update the data array in memory for the destination block
+      memcpy(data[destBlockNum - FIRST_DATA_BLOCK].data, buffer, BLOCK_SIZE);
    }
 
    // Find the first vacant directory entry
-   // Only check inode == NULL_INODE to determine if it's free
    int destDirIndex = -1;
    for (int i = 0; i < MAX_FILES; i++)
    {
@@ -586,14 +610,13 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
             destInode->block_numbers[i] = NULL_BLOCK;
          }
       }
-      // Free inode
       byteMaps->inode_bytemap[destInodeIndex] = 0;
       superBlock->free_inodes++;
       memset(destInode, 0, sizeof(EXT_SIMPLE_INODE));
       return -1;
    }
 
-   // Create a new directory entry
+   // Create a new directory entry for the copied file
    strncpy(directory[destDirIndex].file_name, destName, FILE_NAME_LENGTH - 1);
    directory[destDirIndex].file_name[FILE_NAME_LENGTH - 1] = '\0'; // Ensure null termination
    directory[destDirIndex].inode = destInodeIndex;
@@ -668,4 +691,13 @@ void DebugListAllDirectoryEntries(EXT_DIRECTORY_ENTRY *directory)
       }
    }
    printf("-------------------------------------------------\n");
+}
+
+void ClearScreen()
+{
+#ifdef _WIN32
+   system("cls");
+#else
+   system("clear");
+#endif
 }
