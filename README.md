@@ -107,10 +107,12 @@ Understanding how the filesystem simulator manipulates these structures internal
 ### Initialization
 
 1. **Loading the Filesystem:**
+
    - Upon starting, the program opens `particion.bin` in read-write binary mode.
    - It reads all blocks into an in-memory array (`fileData`), ensuring quick access and manipulation.
 
 2. **Parsing Structures:**
+
    - **Superblock:** Extracted from `fileData[0]`.
    - **Byte Maps:** Extracted from `fileData[1]`.
    - **Inode Block:** Extracted from `fileData[2]`.
@@ -258,14 +260,95 @@ To maintain data integrity and ensure that changes persist across program execut
 ### Prerequisites
 
 - **C Compiler:** Ensure you have `gcc` or any compatible C compiler installed.
-- **Make (Optional):** For using a Makefile if provided.
 
 ### Steps
 
-1. **Clone the Repository:**
+```bash
+git clone https://github.com/LaTalavera/Practica_SO5.git
+cd Practica_SO5
+gcc -o filesystem filesystem.c
+./filesystem
+```
+### Available Commands
 
-   ```bash
-   git clone https://github.com/yourusername/filesystem-simulator.git
-   cd filesystem-simulator
-   gcc -o filesystem filesystem.c
-   ./filesystem
+- **`dir`**: List all files in the directory.
+- **`info`**: Display superblock information.
+- **`bytemaps`**: Show inode and block byte maps.
+- **`rename <old_name> <new_name>`**: Rename a file.
+- **`print <file_name>`**: Display the contents of a file.
+- **`remove <file_name>`**: Delete a file.
+- **`copy <source_name> <dest_name>`**: Copy a file.
+- **`clear`**: Clear the terminal screen.
+- **`debug`**: List all directory entries for debugging.
+- **`help`**: Show available commands.
+- **`exit`**: Save changes and exit the program.
+
+## Continuous Integration
+
+The project utilizes GitHub Actions to automate the build, static analysis, and testing processes. This ensures code quality and reliability by automatically verifying that new changes do not introduce regressions or issues.
+
+### GitHub Actions Workflow
+
+The CI pipeline is defined in build.yml and consists of three primary jobs:
+
+#### Build the Application
+
+Environment: Ubuntu latest
+Steps:
+Checkout the code.
+Install GCC and build-essential packages.
+Compile the filesystem.c source file into an executable named filesystem.
+Upload the compiled executable as a build artifact.
+
+#### Run Static Analysis
+
+Environment: Ubuntu latest
+Dependencies: Depends on the successful completion of the build job.
+Steps:
+Checkout the code.
+Install cppcheck for static code analysis.
+Run cppcheck on headers.h and filesystem.c with comprehensive analysis flags.
+Fail the job if any errors are detected.
+
+#### Run Unit Tests
+
+Environment: Ubuntu latest
+Dependencies: Depends on the successful completion of the build job.
+Steps:
+Checkout the code.
+Install GCC and Unity testing framework.
+Compile the unit tests located in the tests directory using gcc, linking against filesystem.c and unity.c.
+Execute the compiled unit tests.
+Upload the test results as an artifact.
+
+
+## Unit Testing
+### Testing Framework
+The project employs the Unity testing framework, a lightweight and straightforward framework for C, to facilitate unit testing. Unity provides a simple API for writing and running tests, ensuring that individual components of the filesystem simulator function as expected.
+
+Running Unit Tests
+To run the unit tests locally, follow these steps:
+
+Navigate to the Project Directory
+```bash
+cd Practica_SO5
+```
+Compile the Unit Tests
+
+Ensure that you have GCC installed. Then, compile the tests using the following command:
+```bash
+gcc -Itests -I. -DTEST -o test_filesystem tests/test_filesystem.c filesystem.c tests/unity.c -Wall -Werror
+```
+**Flags Explained:**
+
+- ``-Itests -I.``: Include directories for header files.
+- ``-DTEST``: Define the `TEST` macro, enabling test-specific code paths.
+- ``-o test_filesystem``: Output executable named `test_filesystem`.
+- ``-Wall -Werror``: Enable all warnings and treat them as errors for stricter code quality.
+
+### Execute the Unit Tests
+
+Run the compiled test executable:
+```bash
+./test_filesystem
+```
