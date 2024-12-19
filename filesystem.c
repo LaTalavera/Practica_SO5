@@ -99,14 +99,7 @@ int main()
             DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
          }
          continue;
-      } else if (strcmp(order, "delete") == 0) {
-         if (strlen(argument1) == 0) {
-            printf("Usage: delete <file_name>\n");
-         } else {
-            DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
-         }
-         continue;
-      }
+      } 
       else if (strcmp(order, "exit") == 0)
       {
          // TODO uncomment it out once Savedata is implemented
@@ -196,7 +189,7 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
    for (i = 0; i < MAX_FILES; i++)
    {
       // Skip empty entries and the special entry "."
-      if (directory[i].inode == 0xFFFF || strcmp(directory[i].file_name, ".") == 0)
+      if (directory[i].inode == NULL_INODE || strcmp(directory[i].file_name, ".") == 0) 
       {
          continue;
       }
@@ -213,7 +206,7 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
       // Print occupied blocks
       for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
       {
-         if (inode->block_numbers[j] != 0xFFFF) // Skip unassigned blocks
+         if (inode->block_numbers[j] != NULL_BLOCK) // Skip unassigned blocks
          {
             printf(" %u", inode->block_numbers[j]);
          }
@@ -230,7 +223,7 @@ int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name
    // Iterate through the directory to find the file
    for (i = 0; i < MAX_FILES; i++)
    {
-      if (directory[i].inode != 0xFFFF && strcmp(directory[i].file_name, name) == 0)
+      if (directory[i].inode != NULL_INODE && strcmp(directory[i].file_name, name) == 0) 
       {
          return i; // Return the index of the file
       }
@@ -373,7 +366,7 @@ int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE
    superBlock->free_inodes++;
 
    // Remove directory entry
-   directory[fileIndex].inode = 0xFFFF;
+   directory[fileIndex].inode = NULL_INODE;
    memset(directory[fileIndex].file_name, 0, sizeof(directory[fileIndex].file_name));
 
    printf("File '%s' deleted successfully.\n", name);
