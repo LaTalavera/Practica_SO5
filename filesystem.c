@@ -432,6 +432,7 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
    EXT_DIRECTORY_ENTRY *sourceEntry = &directory[sourceIndex];
    EXT_SIMPLE_INODE *sourceInode = &inodes->inodes[sourceEntry->inode];
 
+   // Find first free inode
    int destInodeIndex = -1;
    for (int i = 0; i < MAX_INODES; i++)
    {
@@ -455,6 +456,99 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
    // Initialize destination inode
    EXT_SIMPLE_INODE *destInode = &inodes->inodes[destInodeIndex];
    destInode->file_size = sourceInode->file_size;
+
+   // Copy data blocks
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   {
+      if (sourceInode->block_numbers[i] != NULL_BLOCK)
+      {
+         // Find first free block
+         int destBlockNum = -1;
+         for (int j = 0; j < MAX_PARTITION_BLOCKS; j++) // Adjust MAX_PARTITION_BLOCKS as per your definition
+         {
+            if (byteMaps->block_bytemap[j] == 0)
+            {
+               destBlockNum = j;
+               break;
+            }
+         }
+
+         if (destBlockNum == -1)
+         {
+            printf("No free blocks available to copy data.\n");
+            // Cleanup allocated inode before exiting
+            byteMaps->inode_bytemap[destInodeIndex] = 0;
+            superBlock->free_inodes++;
+            memset(destInode, 0, sizeof(EXT_SIMPLE_INODE));
+            return -1;
+         }
+
+         // Mark block as occupied
+         byteMaps->block_bytemap[destBlockNum] = 1;
+         superBlock->free_blocks--;
+
+         // Assign block number to destination inode
+         destInode->block_numbers[i] = destBlockNum;
+
+         // Calculate offset in the file for source and destination blocks
+         long sourceOffset = sourceInode->block_numbers[i] * BLOCK_SIZE;
+         long destOffset = destBlockNum * BLOCK_SIZE;
+
+         // Seek to source block
+         if (fseek(file, sourceOffset, SEEK_SET) != 0)
+         {
+            printf("Error seeking to source block %d.\n", sourceInode->block_numbers[i]);
+            return -1;
+         }
+
+         // Read data from source block
+         unsigned char buffer[BLOCK_SIZE];
+         size_t bytesRead = fread(buffer, 1, BLOCK_SIZE, file);
+         if (bytesRead != BLOCK_SIZE && ferror(file))
+         {
+            printf("Error reading from source block %d.\n", sourceInode->block_numbers[i]);
+            return -1;
+         }
+
+         // Seek to destination block
+         if (fseek(file, destOffset, SEEK_SET) != 0)
+         {
+            printf("Error seeking to destination block %d.\n", destBlockNum);
+            return -1;
+         }
+
+         // Write data to destination block
+         size_t bytesWritten = fwrite(buffer, 1, BLOCK_SIZE, file);
+         if (bytesRead != BLOCK_SIZE && ferror(file))
+         {
+            printf("Error reading from source block %d.\n", sourceInode->block_numbers[i]);
+            return -1;
+         }
+
+         // Seek to destination block
+         if (fseek(file, destOffset, SEEK_SET) != 0)
+         {
+            printf("Error seeking to destination block %d.\n", destBlockNum);
+            return -1;
+         }
+
+         // Write data to destination block
+         size_t bytesWritten = fwrite(buffer, 1, BLOCK_SIZE, file);
+         if (bytesWritten != BLOCK_SIZE)
+         {
+            printf("Error writing to destination block %d.\n", destBlockNum);
+            return -1;
+         }
+
+         // Update data array in memory
+         memcpy(data[destBlockNum].data, buffer, BLOCK_SIZE);
+      }
+      else
+      {
+         // No more blocks to copy
+         break;
+      }
+   }
 
    return 0;
 }
