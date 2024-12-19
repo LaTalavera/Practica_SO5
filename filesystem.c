@@ -88,6 +88,25 @@ int main()
          }
          continue;
       }
+      else if (strcmp(order, "remove") == 0)
+      {
+         if (strlen(argument1) == 0)
+         {
+            printf("Usage: remove <file_name>\n");
+         }
+         else
+         {
+            DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
+         }
+         continue;
+      } else if (strcmp(order, "delete") == 0) {
+         if (strlen(argument1) == 0) {
+            printf("Usage: delete <file_name>\n");
+         } else {
+            DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
+         }
+         continue;
+      }
       else if (strcmp(order, "exit") == 0)
       {
          // TODO uncomment it out once Savedata is implemented
@@ -322,4 +341,41 @@ int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA 
 
     free(buffer);
     return 0;
+}
+
+int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, char *name)
+{
+   int fileIndex = FindFile(directory, inodes, name);
+   if (fileIndex == -1)
+   {
+      printf("File '%s' not found.\n", name);
+      return -1;
+   }
+
+   int inodeIndex = directory[fileIndex].inode;
+   EXT_SIMPLE_INODE *inode = &inodes->inodes[inodeIndex];
+
+   // Free data blocks
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   {
+      if (inode->block_numbers[i] != NULL_BLOCK)
+      {
+         int blockNum = inode->block_numbers[i];
+         byteMaps->block_bytemap[blockNum] = 0; // Mark block as free
+         inode->block_numbers[i] = NULL_BLOCK;  // Reset block number
+         superBlock->free_blocks++;
+      }
+   }
+
+   // Free inode
+   byteMaps->inode_bytemap[inodeIndex] = 0;
+   memset(inode, 0, sizeof(EXT_SIMPLE_INODE));
+   superBlock->free_inodes++;
+
+   // Remove directory entry
+   directory[fileIndex].inode = 0xFFFF;
+   memset(directory[fileIndex].file_name, 0, sizeof(directory[fileIndex].file_name));
+
+   printf("File '%s' deleted successfully.\n", name);
+   return 0;
 }
