@@ -407,6 +407,7 @@ int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE
 int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *sourceName, char *destName, FILE *file)
 {
    // Validate input parameters
+   // TODO check if all this checks are necessary
    if (directory == NULL || inodes == NULL || byteMaps == NULL || superBlock == NULL || data == NULL || sourceName == NULL || destName == NULL || file == NULL)
    {
       printf("Invalid input parameters.\n");
@@ -419,5 +420,17 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
       printf("Destination file '%s' already exists.\n", destName);
       return -1;
    }
+
+   // Find source file
+   int sourceIndex = FindFile(directory, inodes, sourceName);
+   if (sourceIndex == -1)
+   {
+      printf("Source file '%s' not found.\n", sourceName);
+      return -1;
+   }
+
+   EXT_DIRECTORY_ENTRY *sourceEntry = &directory[sourceIndex];
+   EXT_SIMPLE_INODE *sourceInode = &inodes->inodes[sourceEntry->inode];
+
    return 0;
 }
