@@ -432,5 +432,29 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
    EXT_DIRECTORY_ENTRY *sourceEntry = &directory[sourceIndex];
    EXT_SIMPLE_INODE *sourceInode = &inodes->inodes[sourceEntry->inode];
 
+   int destInodeIndex = -1;
+   for (int i = 0; i < MAX_INODES; i++)
+   {
+      if (byteMaps->inode_bytemap[i] == 0 && i != 0 && i != 1 && i != 2) // Assuming inodes 0,1,2 are reserved
+      {
+         destInodeIndex = i;
+         break;
+      }
+   }
+
+   if (destInodeIndex == -1)
+   {
+      printf("No free inodes available.\n");
+      return -1;
+   }
+
+   // Mark inode as occupied
+   byteMaps->inode_bytemap[destInodeIndex] = 1;
+   superBlock->free_inodes--;
+
+   // Initialize destination inode
+   EXT_SIMPLE_INODE *destInode = &inodes->inodes[destInodeIndex];
+   destInode->file_size = sourceInode->file_size;
+
    return 0;
 }
