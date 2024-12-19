@@ -184,36 +184,44 @@ void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 {
    int i, j;
-   EXT_SIMPLE_INODE *inode;
+   int fileCount = 0; // Counter for found files
 
-   for (i = 0; i < MAX_FILES; i++)
-   {
-      // Skip empty entries and the special entry "."
-      if (directory[i].inode == NULL_INODE || strcmp(directory[i].file_name, ".") == 0) 
-      {
-         continue;
-      }
+    printf("List of files in the directory:\n");
+    printf("-------------------------------------------------\n");
+    for (i = 0; i < MAX_FILES; i++)
+    {
+        // Skip empty entries and the special entry "."
+        if (directory[i].inode == NULL_INODE || strcmp(directory[i].file_name, ".") == 0) 
+        {
+            continue;
+        }
 
-      // Get the corresponding inode
-      inode = &inodes->inodes[directory[i].inode];
+        // Get the corresponding inode
+        EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[i].inode];
 
-      // Print file name, size, and inode
-      printf("\n%-20s size:%-6u inode:%-2d blocks:",
-             directory[i].file_name, // File name
-             inode->file_size,       // File size
-             directory[i].inode);    // Inode number
+        // Print file name, size, and inode
+        printf("\n%-20s size:%-6u inode:%-2d blocks:",
+               directory[i].file_name, // File name
+               inode->file_size,       // File size
+               directory[i].inode);    // Inode number
 
-      // Print occupied blocks
-      for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
-      {
-         if (inode->block_numbers[j] != NULL_BLOCK) // Skip unassigned blocks
-         {
-            printf(" %u", inode->block_numbers[j]);
-         }
-      }
+        // Print occupied blocks
+        for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
+        {
+            if (inode->block_numbers[j] != NULL_BLOCK) // Skip unassigned blocks
+            {
+                printf(" %u", inode->block_numbers[j]);
+            }
+        }
 
-      printf("\n");
-   }
+        fileCount++; // Increment the file counter
+    }
+
+    // Check if no files were found
+    if (fileCount == 0)
+    {
+        printf("No files in the directory.\n");
+    }
 }
 
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name)
