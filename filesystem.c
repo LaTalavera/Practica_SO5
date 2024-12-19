@@ -550,5 +550,43 @@ int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_M
       }
    }
 
+    // Find first available directory entry
+    int destDirIndex = -1;
+    for (int i = 0; i < MAX_FILES; i++)
+    {
+        if (directory[i].inode == NULL_INODE && strlen(directory[i].file_name) == 0)
+        {
+            destDirIndex = i;
+            break;
+        }
+    }
+
+    if (destDirIndex == -1)
+    {
+        printf("No free directory entries available.\n");
+        // Cleanup allocated blocks and inode before exiting
+        for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+        {
+            if (destInode->block_numbers[i] != NULL_BLOCK)
+            {
+                byteMaps->block_bytemap[destInode->block_numbers[i]] = 0;
+                superBlock->free_blocks++;
+                destInode->block_numbers[i] = NULL_BLOCK;
+            }
+        }
+        // Free inode
+        byteMaps->inode_bytemap[destInodeIndex] = 0;
+        superBlock->free_inodes++;
+        memset(destInode, 0, sizeof(EXT_SIMPLE_INODE));
+        return -1;
+    }
+
+   // Create new directory entry
+    strncpy(directory[destDirIndex].file_name, destName, FILE_NAME_LENGTH - 1);
+    directory[destDirIndex].file_name[FILE_NAME_LENGTH - 1] = '\0'; // Ensure null termination
+    directory[destDirIndex].inode = destInodeIndex;
+
+    printf("File '%s' copied to '%s' successfully.\n", sourceName, destName);
+
    return 0;
 }
