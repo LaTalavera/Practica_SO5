@@ -187,7 +187,7 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
    int fileCount = 0; // Counter for found files
 
     printf("List of files in the directory:\n");
-    printf("-------------------------------------------------\n");
+    printf("-------------------------------------------------------\n");
     for (i = 0; i < MAX_FILES; i++)
     {
         // Skip empty entries and the special entry "."
@@ -216,6 +216,7 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
 
         fileCount++; // Increment the file counter
     }
+    printf("\n");
 
     // Check if no files were found
     if (fileCount == 0)
@@ -379,4 +380,8 @@ int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE
 
    printf("File '%s' deleted successfully.\n", name);
    return 0;
+}
+
+int CopyFile(){
+   
 }
