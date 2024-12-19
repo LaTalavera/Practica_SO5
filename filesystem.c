@@ -31,10 +31,10 @@ int main()
    memcpy(&superBlock, (EXT_SIMPLE_SUPERBLOCK *)&fileData[0], BLOCK_SIZE);
    memcpy(&byteMaps, (EXT_BYTE_MAPS *)&fileData[1], BLOCK_SIZE);
    memcpy(&inodeBlock, (EXT_INODE_BLOCK *)&fileData[2], BLOCK_SIZE);
-   memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES); 
-   memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE); 
-   
-  // Command processing loop
+   memcpy(directory, (EXT_DIRECTORY_ENTRY *)&fileData[3], sizeof(EXT_DIRECTORY_ENTRY) * MAX_FILES);
+   memcpy(&data, (EXT_DATA *)&fileData[4], MAX_DATA_BLOCKS * BLOCK_SIZE);
+
+   // Command processing loop
    for (;;)
    {
       do
@@ -64,7 +64,7 @@ int main()
          PrintByteMaps(&byteMaps);
          continue;
       }
-      //TODO check if the params validation is better to be done within the functions
+      // TODO check if the params validation is better to be done within the functions
       else if (strcmp(order, "rename") == 0)
       {
          if (strlen(argument1) == 0 || strlen(argument2) == 0)
@@ -100,8 +100,8 @@ int main()
             DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
          }
          continue;
-      } 
-      else if(strcmp(order, "copy") == 0)
+      }
+      else if (strcmp(order, "copy") == 0)
       {
          if (strlen(argument1) == 0 || strlen(argument2) == 0)
          {
@@ -199,43 +199,43 @@ void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
    int i, j;
    int fileCount = 0; // Counter for found files
 
-    printf("List of files in the directory:\n");
-    printf("-------------------------------------------------------\n");
-    for (i = 0; i < MAX_FILES; i++)
-    {
-        // Skip empty entries and the special entry "."
-        if (directory[i].inode == NULL_INODE || strcmp(directory[i].file_name, ".") == 0) 
-        {
-            continue;
-        }
+   printf("List of files in the directory:\n");
+   printf("-------------------------------------------------------\n");
+   for (i = 0; i < MAX_FILES; i++)
+   {
+      // Skip empty entries and the special entry "."
+      if (directory[i].inode == NULL_INODE || strcmp(directory[i].file_name, ".") == 0)
+      {
+         continue;
+      }
 
-        // Get the corresponding inode
-        EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[i].inode];
+      // Get the corresponding inode
+      EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[i].inode];
 
-        // Print file name, size, and inode
-        printf("\n%-20s size:%-6u inode:%-2d blocks:",
-               directory[i].file_name, // File name
-               inode->file_size,       // File size
-               directory[i].inode);    // Inode number
+      // Print file name, size, and inode
+      printf("\n%-20s size:%-6u inode:%-2d blocks:",
+             directory[i].file_name, // File name
+             inode->file_size,       // File size
+             directory[i].inode);    // Inode number
 
-        // Print occupied blocks
-        for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
-        {
-            if (inode->block_numbers[j] != NULL_BLOCK) // Skip unassigned blocks
-            {
-                printf(" %u", inode->block_numbers[j]);
-            }
-        }
+      // Print occupied blocks
+      for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
+      {
+         if (inode->block_numbers[j] != NULL_BLOCK) // Skip unassigned blocks
+         {
+            printf(" %u", inode->block_numbers[j]);
+         }
+      }
 
-        fileCount++; // Increment the file counter
-    }
-    printf("\n");
+      fileCount++; // Increment the file counter
+   }
+   printf("\n");
 
-    // Check if no files were found
-    if (fileCount == 0)
-    {
-        printf("No files in the directory.\n");
-    }
+   // Check if no files were found
+   if (fileCount == 0)
+   {
+      printf("No files in the directory.\n");
+   }
 }
 
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name)
@@ -245,7 +245,7 @@ int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name
    // Iterate through the directory to find the file
    for (i = 0; i < MAX_FILES; i++)
    {
-      if (directory[i].inode != NULL_INODE && strcmp(directory[i].file_name, name) == 0) 
+      if (directory[i].inode != NULL_INODE && strcmp(directory[i].file_name, name) == 0)
       {
          return i; // Return the index of the file
       }
@@ -288,74 +288,83 @@ int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *ol
 
 #include <stdlib.h> // Required for malloc and free
 
-int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name) {
-    // Find the file using FindFile
-    int fileIndex = FindFile(directory, inodes, name);
+int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name)
+{
+   // Find the file using FindFile
+   int fileIndex = FindFile(directory, inodes, name);
 
-    if (fileIndex == -1) {
-        printf("File '%s' not found.\n", name);
-        return -1;
-    }
+   if (fileIndex == -1)
+   {
+      printf("File '%s' not found.\n", name);
+      return -1;
+   }
 
-    // Get the inode of the file
-    EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[fileIndex].inode];
+   // Get the inode of the file
+   EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[fileIndex].inode];
 
-    // Check if the file size is valid
-    if (inode->file_size == 0) {
-        printf("File '%s' is empty.\n", name);
-        return 0;
-    }
+   // Check if the file size is valid
+   if (inode->file_size == 0)
+   {
+      printf("File '%s' is empty.\n", name);
+      return 0;
+   }
 
-    // Allocate buffer to hold file content
-    unsigned char *buffer = malloc(inode->file_size + 1); // +1 for null terminator
-    if (!buffer) {
-        perror("Memory allocation failed");
-        return -1;
-    }
+   // Allocate buffer to hold file content
+   unsigned char *buffer = malloc(inode->file_size + 1); // +1 for null terminator
+   if (!buffer)
+   {
+      perror("Memory allocation failed");
+      return -1;
+   }
 
-    size_t bytesCopied = 0;
-    memset(buffer, 0, inode->file_size + 1); // Initialize buffer
+   size_t bytesCopied = 0;
+   memset(buffer, 0, inode->file_size + 1); // Initialize buffer
 
-    for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++) {
-        if (inode->block_numbers[i] == NULL_BLOCK) {
-            continue;
-        }
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   {
+      if (inode->block_numbers[i] == NULL_BLOCK)
+      {
+         continue;
+      }
 
-        int blockNumber = inode->block_numbers[i];
+      int blockNumber = inode->block_numbers[i];
 
-        // Ensure blockNumber is within valid range
-        if (blockNumber < FIRST_DATA_BLOCK || blockNumber >= (FIRST_DATA_BLOCK + MAX_DATA_BLOCKS)) {
-            printf("Error: Invalid block number %d for file '%s'.\n", blockNumber, name);
-            continue;
-        }
+      // Ensure blockNumber is within valid range
+      if (blockNumber < FIRST_DATA_BLOCK || blockNumber >= (FIRST_DATA_BLOCK + MAX_DATA_BLOCKS))
+      {
+         printf("Error: Invalid block number %d for file '%s'.\n", blockNumber, name);
+         continue;
+      }
 
-        // Map block number to data array index
-        int dataIndex = blockNumber - FIRST_DATA_BLOCK;
+      // Map block number to data array index
+      int dataIndex = blockNumber - FIRST_DATA_BLOCK;
 
-        // Boundary check
-        if (dataIndex >= MAX_DATA_BLOCKS) {
-            printf("Error: Data index %d out of bounds for block %d.\n", dataIndex, blockNumber);
-            continue;
-        }
+      // Boundary check
+      if (dataIndex >= MAX_DATA_BLOCKS)
+      {
+         printf("Error: Data index %d out of bounds for block %d.\n", dataIndex, blockNumber);
+         continue;
+      }
 
-        EXT_DATA *block = &data[dataIndex];
+      EXT_DATA *block = &data[dataIndex];
 
-        // Determine how many bytes to copy from this block
-        size_t bytesToCopy = (inode->file_size - bytesCopied) < BLOCK_SIZE ? (inode->file_size - bytesCopied) : BLOCK_SIZE;
-        memcpy(buffer + bytesCopied, block->data, bytesToCopy);
-        bytesCopied += bytesToCopy;
+      // Determine how many bytes to copy from this block
+      size_t bytesToCopy = (inode->file_size - bytesCopied) < BLOCK_SIZE ? (inode->file_size - bytesCopied) : BLOCK_SIZE;
+      memcpy(buffer + bytesCopied, block->data, bytesToCopy);
+      bytesCopied += bytesToCopy;
 
-        if (bytesCopied >= inode->file_size) {
-            break;
-        }
-    }
+      if (bytesCopied >= inode->file_size)
+      {
+         break;
+      }
+   }
 
-    buffer[inode->file_size] = '\0'; // Ensure null termination
+   buffer[inode->file_size] = '\0'; // Ensure null termination
 
-    printf("Content of file '%s':\n%s\n", name, buffer);
+   printf("Content of file '%s':\n%s\n", name, buffer);
 
-    free(buffer);
-    return 0;
+   free(buffer);
+   return 0;
 }
 
 int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, char *name)
@@ -397,13 +406,31 @@ int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE
 
 int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *sourceName, char *destName, FILE *file)
 {
-    // Validate input parameters
-    if (directory == NULL || inodes == NULL || byteMaps == NULL || superBlock == NULL || data == NULL || sourceName == NULL || destName == NULL || file == NULL)
-    {
-        printf("Invalid input parameters.\n");
-        return -1;
-    }
+   // Validate input parameters
+   // TODO check if all this checks are necessary
+   if (directory == NULL || inodes == NULL || byteMaps == NULL || superBlock == NULL || data == NULL || sourceName == NULL || destName == NULL || file == NULL)
+   {
+      printf("Invalid input parameters.\n");
+      return -1;
+   }
 
-    // Function implementation will continue in subsequent steps
-    return 0;
+   // Check if destination file already exists
+   if (FindFile(directory, inodes, destName) != -1)
+   {
+      printf("Destination file '%s' already exists.\n", destName);
+      return -1;
+   }
+
+   // Find source file
+   int sourceIndex = FindFile(directory, inodes, sourceName);
+   if (sourceIndex == -1)
+   {
+      printf("Source file '%s' not found.\n", sourceName);
+      return -1;
+   }
+
+   EXT_DIRECTORY_ENTRY *sourceEntry = &directory[sourceIndex];
+   EXT_SIMPLE_INODE *sourceInode = &inodes->inodes[sourceEntry->inode];
+
+   return 0;
 }
