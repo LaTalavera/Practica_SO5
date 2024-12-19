@@ -64,6 +64,7 @@ int main()
          PrintByteMaps(&byteMaps);
          continue;
       }
+      //TODO check if the params validation is better to be done within the functions
       else if (strcmp(order, "rename") == 0)
       {
          if (strlen(argument1) == 0 || strlen(argument2) == 0)
@@ -100,6 +101,18 @@ int main()
          }
          continue;
       } 
+      else if(strcmp(order, "copy") == 0)
+      {
+         if (strlen(argument1) == 0 || strlen(argument2) == 0)
+         {
+            printf("Usage: copy <source_file> <destination_file>\n");
+         }
+         else
+         {
+            CopyFile(directory, &inodeBlock, &byteMaps, &superBlock, data, argument1, argument2, file);
+         }
+         continue;
+      }
       else if (strcmp(order, "exit") == 0)
       {
          // TODO uncomment it out once Savedata is implemented
@@ -382,6 +395,15 @@ int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE
    return 0;
 }
 
-int CopyFile(){
-   
+int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *sourceName, char *destName, FILE *file)
+{
+    // Validate input parameters
+    if (directory == NULL || inodes == NULL || byteMaps == NULL || superBlock == NULL || data == NULL || sourceName == NULL || destName == NULL || file == NULL)
+    {
+        printf("Invalid input parameters.\n");
+        return -1;
+    }
+
+    // Function implementation will continue in subsequent steps
+    return 0;
 }
