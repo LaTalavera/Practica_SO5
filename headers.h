@@ -65,3 +65,5 @@ void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *ino
 void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
 void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
 void SaveData(EXT_DATA *data, FILE *file);
+//helper functions
+void DebugListAllDirectoryEntries(EXT_DIRECTORY_ENTRY *directory);
