@@ -99,6 +99,13 @@ int main()
             DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
          }
          continue;
+      } else if (strcmp(order, "delete") == 0) {
+         if (strlen(argument1) == 0) {
+            printf("Usage: delete <file_name>\n");
+         } else {
+            DeleteFile(directory, &inodeBlock, &byteMaps, &superBlock, argument1);
+         }
+         continue;
       }
       else if (strcmp(order, "exit") == 0)
       {
