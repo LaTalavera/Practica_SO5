@@ -57,6 +57,8 @@ void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); //NOT USED FOR NOW
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); 
 int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
+int CreateFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps,
+               EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *fileName, char *content);
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
 int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name);
 int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, char *name);
