@@ -65,6 +65,25 @@ int main()
          PrintByteMaps(&byteMaps);
          continue;
       }
+      else if (strcmp(order, "create") == 0)
+      {
+         if (strlen(argument1) == 0 || strlen(argument2) == 0)
+         {
+            printf("Usage: create <file_name> <content>\n");
+         }
+         else
+         {
+            if (CreateFile(directory, &inodeBlock, &byteMaps, &superBlock, data, argument1, argument2) == 0)
+            {
+               SaveInodesAndDirectory(directory, &inodeBlock, file);
+               SaveByteMaps(&byteMaps, file);
+               SaveSuperBlock(&superBlock, file);
+               SaveData(data, file); // Save data after creating the file
+            }
+         }
+         continue;
+      }
+
       else if (strcmp(order, "rename") == 0)
       {
          if (strlen(argument1) == 0 || strlen(argument2) == 0)
@@ -700,4 +719,98 @@ void ClearScreen()
 #else
    system("clear");
 #endif
+}
+
+int CreateFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps,
+               EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *fileName, char *content)
+{
+   // Check if the file name already exists
+   if (FindFile(directory, inodes, fileName) != -1)
+   {
+      printf("Error: File '%s' already exists.\n", fileName);
+      return -1;
+   }
+
+   // Find a free inode
+   int inodeIndex = -1;
+   for (int i = 0; i < MAX_INODES; i++)
+   {
+      if (byteMaps->inode_bytemap[i] == 0)
+      {
+         inodeIndex = i;
+         break;
+      }
+   }
+
+   if (inodeIndex == -1)
+   {
+      printf("Error: No free inodes available.\n");
+      return -1;
+   }
+
+   // Mark the inode as used
+   byteMaps->inode_bytemap[inodeIndex] = 1;
+   superBlock->free_inodes--;
+
+   // Initialize the inode
+   EXT_SIMPLE_INODE *inode = &inodes->inodes[inodeIndex];
+   inode->file_size = strlen(content);
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   {
+      inode->block_numbers[i] = NULL_BLOCK;
+   }
+
+   // Copy the content into blocks
+   int bytesRemaining = inode->file_size;
+   int contentOffset = 0;
+
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS && bytesRemaining > 0; i++)
+   {
+      // Find a free block
+      int blockNum = -1;
+      for (int j = FIRST_DATA_BLOCK; j < MAX_PARTITION_BLOCKS; j++)
+      {
+         if (byteMaps->block_bytemap[j] == 0)
+         {
+            blockNum = j;
+            break;
+         }
+      }
+
+      if (blockNum == -1)
+      {
+         printf("Error: No free blocks available.\n");
+         return -1;
+      }
+
+      // Mark the block as used
+      byteMaps->block_bytemap[blockNum] = 1;
+      superBlock->free_blocks--;
+
+      // Assign the block to the inode
+      inode->block_numbers[i] = blockNum;
+
+      // Copy content to the block
+      int dataIndex = blockNum - FIRST_DATA_BLOCK;
+      int bytesToCopy = (bytesRemaining < BLOCK_SIZE) ? bytesRemaining : BLOCK_SIZE;
+      memcpy(data[dataIndex].data, content + contentOffset, bytesToCopy);
+      contentOffset += bytesToCopy;
+      bytesRemaining -= bytesToCopy;
+   }
+
+   // Create a directory entry
+   for (int i = 0; i < MAX_FILES; i++)
+   {
+      if (directory[i].inode == NULL_INODE)
+      {
+         strncpy(directory[i].file_name, fileName, FILE_NAME_LENGTH - 1);
+         directory[i].file_name[FILE_NAME_LENGTH - 1] = '\0'; // Ensure null termination
+         directory[i].inode = inodeIndex;
+         printf("File '%s' created successfully.\n", fileName);
+         return 0;
+      }
+   }
+
+   printf("Error: No free directory entries available.\n");
+   return -1;
 }
