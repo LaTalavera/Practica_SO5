@@ -66,6 +66,48 @@ void test_FindFile_FileNotExists(void)
     TEST_ASSERT_EQUAL_INT_MESSAGE(-1, result, "Should return -1 if the file does not exist");
 }
 
+void test_SaveSuperBlock(void)
+{
+    // Initialize a test SuperBlock with known values
+    EXT_SIMPLE_SUPERBLOCK testSuperBlock = {
+        .total_inodes = 24,
+        .total_blocks = 100,
+        .free_blocks = 90,
+        .free_inodes = 23,
+        .first_data_block = 4,
+        .block_size = BLOCK_SIZE};
+
+    // Create a temporary file
+    FILE *tempFile = fopen("temp_partition.bin", "wb+");
+    TEST_ASSERT_NOT_NULL_MESSAGE(tempFile, "Failed to create temporary partition file.");
+
+    // Call the function to test
+    SaveSuperBlock(&testSuperBlock, tempFile);
+
+    // Ensure data is written
+    fflush(tempFile);
+
+    // Reset file pointer to the beginning
+    fseek(tempFile, 0, SEEK_SET);
+
+    // Read back the SuperBlock
+    EXT_SIMPLE_SUPERBLOCK readSuperBlock;
+    size_t readCount = fread(&readSuperBlock, sizeof(EXT_SIMPLE_SUPERBLOCK), 1, tempFile);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, readCount, "Failed to read SuperBlock from temporary file.");
+
+    // Compare the written and read SuperBlocks
+    TEST_ASSERT_EQUAL_UINT_MESSAGE(testSuperBlock.total_inodes, readSuperBlock.total_inodes, "total_inodes mismatch.");
+    TEST_ASSERT_EQUAL_UINT_MESSAGE(testSuperBlock.total_blocks, readSuperBlock.total_blocks, "total_blocks mismatch.");
+    TEST_ASSERT_EQUAL_UINT_MESSAGE(testSuperBlock.free_blocks, readSuperBlock.free_blocks, "free_blocks mismatch.");
+    TEST_ASSERT_EQUAL_UINT_MESSAGE(testSuperBlock.free_inodes, readSuperBlock.free_inodes, "free_inodes mismatch.");
+    TEST_ASSERT_EQUAL_UINT_MESSAGE(testSuperBlock.first_data_block, readSuperBlock.first_data_block, "first_data_block mismatch.");
+    TEST_ASSERT_EQUAL_UINT_MESSAGE(testSuperBlock.block_size, readSuperBlock.block_size, "block_size mismatch.");
+
+    // Clean up: Close and remove the temporary file
+    fclose(tempFile);
+    remove("temp_partition.bin");
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -73,5 +115,6 @@ int main(void)
     RUN_TEST(test_CheckCommand_WithArguments);
     RUN_TEST(test_FindFile_FileExists);
     RUN_TEST(test_FindFile_FileNotExists);
+    RUN_TEST(test_SaveSuperBlock); // New test added here
     return UNITY_END();
 }
