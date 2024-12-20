@@ -156,16 +156,17 @@ int main()
       else if (strcmp(order, "help") == 0)
       {
          printf("\nAvailable Commands:\n");
-         printf("  dir                  - List all files in the directory.\n");
-         printf("  info                 - Display superblock information.\n");
-         printf("  bytemaps             - Display byte maps information.\n");
-         printf("  rename <old> <new>   - Rename a file.\n");
-         printf("  print <file>         - Display the content of a file.\n");
-         printf("  remove <file>        - Delete a file.\n");
-         printf("  copy <src> <dst>     - Copy a file.\n");
-         printf("  clear                - Clear the terminal screen.\n");
-         printf("  debug                - List all directory entries (debug mode).\n");
-         printf("  exit                 - Save changes and exit the program.\n\n");
+         printf("  dir                       - List all files in the directory.\n");
+         printf("  info                      - Display superblock information.\n");
+         printf("  bytemaps                  - Display byte maps information.\n");
+         printf("  create <name> <content>   - Create a new file.\n");
+         printf("  rename <old> <new>        - Rename a file.\n");
+         printf("  print <file>              - Display the content of a file.\n");
+         printf("  remove <file>             - Delete a file.\n");
+         printf("  copy <src> <dst>          - Copy a file.\n");
+         printf("  clear                     - Clear the terminal screen.\n");
+         printf("  debug                     - List all directory entries (debug mode).\n");
+         printf("  exit                      - Save changes and exit the program.\n\n");
          continue;
       }
       else if (strcmp(order, "clear") == 0)
