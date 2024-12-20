@@ -137,10 +137,10 @@ int main()
       else if (strcmp(order, "help") == 0)
       {
          printf("\nAvailable Commands:\n");
-         printf("  dir                 - List all files in the directory.\n");
-         printf("  info                - Display superblock information.\n");
-         printf("  bytemaps            - Display byte maps information.\n");
-         printf("  rename <old> <new>  - Rename a file.\n");
+         printf("  dir                  - List all files in the directory.\n");
+         printf("  info                 - Display superblock information.\n");
+         printf("  bytemaps             - Display byte maps information.\n");
+         printf("  rename <old> <new>   - Rename a file.\n");
          printf("  print <file>         - Display the content of a file.\n");
          printf("  remove <file>        - Delete a file.\n");
          printf("  copy <src> <dst>     - Copy a file.\n");
