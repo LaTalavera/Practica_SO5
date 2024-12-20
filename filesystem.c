@@ -195,39 +195,60 @@ int main()
 
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {
-   // Split the command into tokens
-   char *token;
-   char commandCopy[COMMAND_LENGTH];
-   strncpy(commandCopy, commandStr, COMMAND_LENGTH);
-   commandCopy[COMMAND_LENGTH - 1] = '\0';
+    char *token;
+    char commandCopy[COMMAND_LENGTH];
+    strncpy(commandCopy, commandStr, COMMAND_LENGTH);
+    commandCopy[COMMAND_LENGTH - 1] = '\0';
 
-   // Remove the newline character
-   char *newline = strchr(commandCopy, '\n');
-   if (newline)
-      *newline = '\0';
+    // Get the command
+    token = strtok(commandCopy, " ");
+    if (token == NULL)
+        return -1;
+    strcpy(command, token);
 
-   // Get the first token (command)
-   token = strtok(commandCopy, " ");
-   if (token == NULL)
-      return -1;
-   strcpy(command, token);
+    // Check if the command is "create" for handling a second argument
+    // content with blankspaces
+    
+    if (strcmp(command, "create") == 0)
+    {
+        // The first argument (file name)
+        token = strtok(NULL, " ");
+        if (token)
+            strcpy(arg1, token);
+        else
+        {
+            arg1[0] = '\0';
+            arg2[0] = '\0';
+            return 0; // No additional arguments
+        }
 
-   // Get the second token (first argument)
-   token = strtok(NULL, " ");
-   if (token)
-      strcpy(arg1, token);
-   else
-      arg1[0] = '\0';
+        // Everything else will be the content
+        char *remaining = strtok(NULL, "");
+        if (remaining)
+            strcpy(arg2, remaining);
+        else
+            arg2[0] = '\0';
 
-   // Get the third token (second argument)
-   token = strtok(NULL, " ");
-   if (token)
-      strcpy(arg2, token);
-   else
-      arg2[0] = '\0';
+        return 0;
+    }
 
-   return 0;
+    // General handling for other commands
+    token = strtok(NULL, " ");
+    if (token)
+        strcpy(arg1, token);
+    else
+        arg1[0] = '\0';
+
+    char *remaining = strtok(NULL, "");
+    if (remaining)
+        strcpy(arg2, remaining);
+    else
+        arg2[0] = '\0';
+
+    return 0;
 }
+
+
 
 void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
 {
