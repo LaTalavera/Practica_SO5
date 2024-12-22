@@ -50,23 +50,43 @@ typedef struct {
   unsigned char data[BLOCK_SIZE]; 	
 } EXT_DATA;
 
-//TODO check relation between all these functions and the exercise requirementes, to make sure we need them all
-void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
+// -----------------------------------------------------------------------------
+// Forward Declarations of Helper Functions
+// -----------------------------------------------------------------------------
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
-void ReadSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); //NOT USED FOR NOW
-void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock); 
-int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
-void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
+void ProcessCommand(
+    const char *order,
+    const char *arg1,
+    const char *arg2,
+    EXT_SIMPLE_SUPERBLOCK *superBlock,
+    EXT_BYTE_MAPS *byteMaps,
+    EXT_INODE_BLOCK *inodeBlock,
+    EXT_DIRECTORY_ENTRY *directory,
+    EXT_DATA *data,
+    FILE *file);
+
+void SaveAllChanges(
+    EXT_DIRECTORY_ENTRY *directory,
+    EXT_INODE_BLOCK *inodeBlock,
+    EXT_BYTE_MAPS *byteMaps,
+    EXT_SIMPLE_SUPERBLOCK *superBlock,
+    EXT_DATA *data,
+    FILE *file);
+
+// Functions for reading/writing on disk or handling disk-like structures
+void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
+void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
+void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodeBlock, FILE *file);
+void SaveData(EXT_DATA *data, FILE *file);
+
+// External functions (same logic as your original code)
 int RenameFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *oldName, char *newName);
-int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name);
 int DeleteFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, char *name);
 int CopyFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_BYTE_MAPS *byteMaps, EXT_SIMPLE_SUPERBLOCK *superBlock, EXT_DATA *data, char *sourceName, char *destName, FILE *file);
-
-void SaveInodesAndDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodeBlock, FILE *file);
-void SaveByteMaps(EXT_BYTE_MAPS *byteMaps, FILE *file);
-void SaveSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock, FILE *file);
-void SaveData(EXT_DATA *data, FILE *file);
-void SaveInodeBlock(EXT_INODE_BLOCK *inodeBlock, FILE *file);
-//helper functions
+int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name);
+void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes);
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock);
+void PrintByteMaps(EXT_BYTE_MAPS *byteMaps);
+int FindFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, char *name);
 void DebugListAllDirectoryEntries(EXT_DIRECTORY_ENTRY *directory);
 void ClearScreen();
