@@ -54,16 +54,7 @@ typedef struct {
 // Forward Declarations of Helper Functions
 // -----------------------------------------------------------------------------
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2);
-void ProcessCommand(
-    const char *order,
-    const char *arg1,
-    const char *arg2,
-    EXT_SIMPLE_SUPERBLOCK *superBlock,
-    EXT_BYTE_MAPS *byteMaps,
-    EXT_INODE_BLOCK *inodeBlock,
-    EXT_DIRECTORY_ENTRY *directory,
-    EXT_DATA *data,
-    FILE *file);
+
 
 void SaveAllChanges(
     EXT_DIRECTORY_ENTRY *directory,
