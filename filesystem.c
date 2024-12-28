@@ -91,37 +91,38 @@ int main()
  */
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {
-   char commandCopy[COMMAND_LENGTH];
-   strncpy(commandCopy, commandStr, COMMAND_LENGTH);
-   commandCopy[COMMAND_LENGTH - 1] = '\0';
+    char commandCopy[COMMAND_LENGTH];
+    strncpy(commandCopy, commandStr, COMMAND_LENGTH);
+    commandCopy[COMMAND_LENGTH - 1] = '\0';
 
-   // Remove newline if present
-   char *newline = strchr(commandCopy, '\n');
-   if (newline)
-      *newline = '\0';
+    // Remove newline if present
+    char *newline = strchr(commandCopy, '\n');
+    if (newline)
+        *newline = '\0';
 
-   // Tokenize the main command
-   char *token = strtok(commandCopy, " ");
-   if (token == NULL)
-      return -1;
-   strcpy(command, token);
+    // Tokenize the main command
+    char *token = strtok(commandCopy, " ");
+    if (token == NULL)
+        return -1;
+    strcpy(command, token);
 
-   // Tokenize arg1
-   token = strtok(NULL, " ");
-   if (token)
-      strcpy(arg1, token);
-   else
-      arg1[0] = '\0';
+    // Tokenize arg1 (e.g., file name)
+    token = strtok(NULL, " ");
+    if (token)
+        strcpy(arg1, token);
+    else
+        arg1[0] = '\0';
 
-   // Tokenize arg2
-   token = strtok(NULL, " ");
-   if (token)
-      strcpy(arg2, token);
-   else
-      arg2[0] = '\0';
+    // Capture the rest as arg2 (e.g., content, copy file name...)
+    char *remaining = strtok(NULL, "");
+    if (remaining)
+        strcpy(arg2, remaining);
+    else
+        arg2[0] = '\0';
 
-   return 0;
+    return 0;
 }
+
 
 /**
  * @brief Dispatches the user command to the appropriate function. This approach
@@ -203,23 +204,20 @@ void ProcessCommand(
          }
       }
    }
-   else if (strcmp(order, "create") == 0)
-   {
-      // We interpret arg1 as filename, arg2 as "content" for simplicity
-      // If you need multi-word content, you'd have to adjust the logic to gather
-      // multiple tokens or rework the input parsing.
-      if (strlen(arg1) == 0 || strlen(arg2) == 0)
-      {
-         fprintf(stderr, "Usage: create <file_name> <content>\n");
-      }
-      else
-      {
-         if (CreateFile(directory, inodeBlock, byteMaps, superBlock, data, (char *)arg1, (char *)arg2) == 0)
-         {
+  else if (strcmp(order, "create") == 0)
+{
+    if (strlen(arg1) == 0 || strlen(arg2) == 0)
+    {
+        fprintf(stderr, "Usage: create <file_name> <content>\n");
+    }
+    else
+    {
+        if (CreateFile(directory, inodeBlock, byteMaps, superBlock, data, (char *)arg1, (char *)arg2) == 0)
+        {
             SaveAllChanges(directory, inodeBlock, byteMaps, superBlock, data, file);
-         }
-      }
-   }
+        }
+    }
+}
    else if (strcmp(order, "debug") == 0)
    {
       DebugListAllDirectoryEntries(directory);
@@ -343,9 +341,203 @@ void SaveData(EXT_DATA *data, FILE *file)
    fflush(file);
 }
 
+
 // ---------------------------------------------------------------------------
 // FILESYSTEM AND COMMAND-RELATED FUNCTIONS
 // ---------------------------------------------------------------------------
+
+/**
+ * @brief Lists all files in the directory along with their sizes, inodes, and allocated blocks.
+ * 
+ * Iterates through the directory entries, skipping empty ones and the special entry ".", 
+ * retrieves corresponding inodes, and displays file information.
+ * 
+ * @param directory Pointer to the directory entries array.
+ * @param inodes Pointer to the inode block structure.
+ */
+void ListDirectory(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes)
+{
+   int i, j;
+   int fileCount = 0; // Counter for found files
+
+   printf("List of files in the directory:\n");
+   printf("-------------------------------------------------------\n");
+   for (i = 0; i < MAX_FILES; i++)
+   {
+      // Skip empty entries and the special entry "."
+      if (directory[i].inode == NULL_INODE || strcmp(directory[i].file_name, ".") == 0)
+      {
+         continue;
+      }
+
+      // Get the corresponding inode
+      EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[i].inode];
+
+      // Print file name, size, and inode
+      printf("\n%-20s size:%-6u inode:%-2d blocks:",
+             directory[i].file_name, // File name
+             inode->file_size,       // File size
+             directory[i].inode);    // Inode number
+
+      // Print occupied blocks
+      for (j = 0; j < MAX_INODE_BLOCK_NUMS; j++)
+      {
+         if (inode->block_numbers[j] != NULL_BLOCK) // Skip unassigned blocks
+         {
+            printf(" %u", inode->block_numbers[j]);
+         }
+      }
+
+      fileCount++; // Increment the file counter
+   }
+   printf("\n");
+
+   // Check if no files were found
+   if (fileCount == 0)
+   {
+      printf("No files in the directory.\n");
+   }
+}
+
+/**
+ * @brief Prints the metadata stored in the superblock.
+ * 
+ * Displays details such as the total number of inodes, total blocks, free blocks, 
+ * free inodes, the starting data block, and the block size.
+ * 
+ * @param superBlock Pointer to the superblock structure.
+ */
+void PrintSuperBlock(EXT_SIMPLE_SUPERBLOCK *superBlock)
+{
+   printf("\nSuperblock Information:\n");
+   printf("Total inodes: %u\n", superBlock->total_inodes);
+   printf("Total blocks: %u\n", superBlock->total_blocks);
+   printf("Free blocks: %u\n", superBlock->free_blocks);
+   printf("Free inodes: %u\n", superBlock->free_inodes);
+   printf("First data block: %u\n", superBlock->first_data_block);
+   printf("Block size: %u bytes\n", superBlock->block_size);
+}
+
+/**
+ * @brief Displays the allocation status of inodes and data blocks.
+ * 
+ * Prints the inode bitmap and the first 25 entries of the block bitmap, 
+ * showing which resources are currently allocated or free.
+ * 
+ * @param byteMaps Pointer to the structure containing the byte maps.
+ */
+void PrintByteMaps(EXT_BYTE_MAPS *byteMaps)
+{
+   int i;
+
+   printf("\nByte maps information:");
+
+   // Display the contents of the inode bytemap
+   printf("\nInodes: ");
+   for (i = 0; i < MAX_INODES; i++)
+   {
+      printf("%u ", byteMaps->inode_bytemap[i]);
+   }
+   printf("\n");
+   // Display the contents of the block bytemap (first 25 elements)
+   printf("Blocks [0-25]: ");
+   for (i = 0; i < 25; i++)
+   {
+      printf("%u ", byteMaps->block_bytemap[i]);
+   }
+   printf("\n");
+}
+
+/**
+ * @brief Displays the content of a specified file.
+ * 
+ * Finds the file in the directory, retrieves its associated inode, and reads
+ * its data blocks to display the content of the file.
+ * 
+ * @param directory Pointer to the directory entries array.
+ * @param inodes Pointer to the inode block structure.
+ * @param data Pointer to the data blocks array.
+ * @param name Name of the file to be printed.
+ * @return 0 on success, -1 if the file is not found or an error occurs.
+ */
+int PrintFile(EXT_DIRECTORY_ENTRY *directory, EXT_INODE_BLOCK *inodes, EXT_DATA *data, char *name)
+{
+   // Find the file using FindFile
+   int fileIndex = FindFile(directory, inodes, name);
+
+   if (fileIndex == -1)
+   {
+      printf("File '%s' not found.\n", name);
+      return -1;
+   }
+
+   // Get the inode of the file
+   EXT_SIMPLE_INODE *inode = &inodes->inodes[directory[fileIndex].inode];
+
+   // Check if the file size is valid
+   if (inode->file_size == 0)
+   {
+      printf("File '%s' is empty.\n", name);
+      return 0;
+   }
+
+   // Allocate buffer to hold file content
+   unsigned char *buffer = malloc(inode->file_size + 1); // +1 for null terminator
+   if (!buffer)
+   {
+      perror("Memory allocation failed");
+      return -1;
+   }
+
+   size_t bytesCopied = 0;
+   memset(buffer, 0, inode->file_size + 1); // Initialize buffer
+
+   for (int i = 0; i < MAX_INODE_BLOCK_NUMS; i++)
+   {
+      if (inode->block_numbers[i] == NULL_BLOCK)
+      {
+         continue;
+      }
+
+      int blockNumber = inode->block_numbers[i];
+
+      // Ensure blockNumber is within valid range
+      if (blockNumber < FIRST_DATA_BLOCK || blockNumber >= (FIRST_DATA_BLOCK + MAX_DATA_BLOCKS))
+      {
+         printf("Error: Invalid block number %d for file '%s'.\n", blockNumber, name);
+         continue;
+      }
+
+      // Map block number to data array index
+      int dataIndex = blockNumber - FIRST_DATA_BLOCK;
+
+      // Boundary check
+      if (dataIndex >= MAX_DATA_BLOCKS)
+      {
+         printf("Error: Data index %d out of bounds for block %d.\n", dataIndex, blockNumber);
+         continue;
+      }
+
+      EXT_DATA *block = &data[dataIndex];
+
+      // Determine how many bytes to copy from this block
+      size_t bytesToCopy = (inode->file_size - bytesCopied) < BLOCK_SIZE ? (inode->file_size - bytesCopied) : BLOCK_SIZE;
+      memcpy(buffer + bytesCopied, block->data, bytesToCopy);
+      bytesCopied += bytesToCopy;
+
+      if (bytesCopied >= inode->file_size)
+      {
+         break;
+      }
+   }
+
+   buffer[inode->file_size] = '\0'; // Ensure null termination
+
+   printf("Content of file '%s':\n%s\n", name, buffer);
+
+   free(buffer);
+   return 0;
+}
 
 /**
  * @brief Renames a file from oldName to newName if it exists and newName is not taken.

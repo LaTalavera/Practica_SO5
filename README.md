@@ -39,6 +39,7 @@ The **Filesystem Simulator** is a command-line application developed in C that e
 - **Directory Listing (`dir`):** View all files in the directory along with their sizes, inodes, and allocated blocks.
 - **Superblock Information (`info`):** Display detailed information about the filesystem's superblock.
 - **Byte Maps Display (`bytemaps`):** Show the status of inodes and data blocks.
+- **File Creating (`create`):** Create a new file with specified content in the filesystem.
 - **File Renaming (`rename`):** Rename existing files.
 - **File Printing (`print`):** Display the contents of a specified file.
 - **File Deletion (`remove`):** Delete files from the filesystem.
@@ -150,6 +151,16 @@ Each file operation manipulates the filesystem structures to reflect changes and
 - **Logic:**
   - Displays the allocation status of inodes and blocks.
   - Helps in understanding which inodes and blocks are occupied or free.
+
+#### Creating Files (`create`)
+
+- **Function:** `CreateFile`
+- **Logic:**
+  - Verifies that the file does not already exist in the directory.
+  - Allocates a free inode and initializes its metadata.
+  - Divides the content into blocks and allocates free blocks to store the data.
+  - Updates the directory with a new entry for the created file.
+  - Saves all updated structures to ensure persistence.
 
 #### Renaming Files (`rename`)
 
