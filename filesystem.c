@@ -91,37 +91,38 @@ int main()
  */
 int CheckCommand(char *commandStr, char *command, char *arg1, char *arg2)
 {
-   char commandCopy[COMMAND_LENGTH];
-   strncpy(commandCopy, commandStr, COMMAND_LENGTH);
-   commandCopy[COMMAND_LENGTH - 1] = '\0';
+    char commandCopy[COMMAND_LENGTH];
+    strncpy(commandCopy, commandStr, COMMAND_LENGTH);
+    commandCopy[COMMAND_LENGTH - 1] = '\0';
 
-   // Remove newline if present
-   char *newline = strchr(commandCopy, '\n');
-   if (newline)
-      *newline = '\0';
+    // Remove newline if present
+    char *newline = strchr(commandCopy, '\n');
+    if (newline)
+        *newline = '\0';
 
-   // Tokenize the main command
-   char *token = strtok(commandCopy, " ");
-   if (token == NULL)
-      return -1;
-   strcpy(command, token);
+    // Tokenize the main command
+    char *token = strtok(commandCopy, " ");
+    if (token == NULL)
+        return -1;
+    strcpy(command, token);
 
-   // Tokenize arg1
-   token = strtok(NULL, " ");
-   if (token)
-      strcpy(arg1, token);
-   else
-      arg1[0] = '\0';
+    // Tokenize arg1 (e.g., file name)
+    token = strtok(NULL, " ");
+    if (token)
+        strcpy(arg1, token);
+    else
+        arg1[0] = '\0';
 
-   // Tokenize arg2
-   token = strtok(NULL, " ");
-   if (token)
-      strcpy(arg2, token);
-   else
-      arg2[0] = '\0';
+    // Capture the rest as arg2 (e.g., content, copy file name...)
+    char *remaining = strtok(NULL, "");
+    if (remaining)
+        strcpy(arg2, remaining);
+    else
+        arg2[0] = '\0';
 
-   return 0;
+    return 0;
 }
+
 
 /**
  * @brief Dispatches the user command to the appropriate function. This approach
@@ -203,23 +204,20 @@ void ProcessCommand(
          }
       }
    }
-   else if (strcmp(order, "create") == 0)
-   {
-      // We interpret arg1 as filename, arg2 as "content" for simplicity
-      // If you need multi-word content, you'd have to adjust the logic to gather
-      // multiple tokens or rework the input parsing.
-      if (strlen(arg1) == 0 || strlen(arg2) == 0)
-      {
-         fprintf(stderr, "Usage: create <file_name> <content>\n");
-      }
-      else
-      {
-         if (CreateFile(directory, inodeBlock, byteMaps, superBlock, data, (char *)arg1, (char *)arg2) == 0)
-         {
+  else if (strcmp(order, "create") == 0)
+{
+    if (strlen(arg1) == 0 || strlen(arg2) == 0)
+    {
+        fprintf(stderr, "Usage: create <file_name> <content>\n");
+    }
+    else
+    {
+        if (CreateFile(directory, inodeBlock, byteMaps, superBlock, data, (char *)arg1, (char *)arg2) == 0)
+        {
             SaveAllChanges(directory, inodeBlock, byteMaps, superBlock, data, file);
-         }
-      }
-   }
+        }
+    }
+}
    else if (strcmp(order, "debug") == 0)
    {
       DebugListAllDirectoryEntries(directory);
